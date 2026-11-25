@@ -17,7 +17,7 @@ HowWeMove is built to be shown, not just read. A personal trainer can pull it up
 - **Show why technique matters.** Notes explain what changes with grip, depth or stance. For example, the hamstrings lengthen under load in a Romanian deadlift, and a decline press shifts work to the lower chest.
 - **Answer "what works my glutes?"** Filter by muscle, equipment, category or difficulty, or search by name, nickname or muscle ("RDL", "skull crusher", "latissimus"). Type "pull-up vs chin-up" to put both at the top of the results.
 - **Share it.** Every exercise and muscle has its own link, so a trainer can send a client straight to their glute bridge or their rotator cuff.
-- **Learn the anatomy.** Click any muscle for what it does, where it attaches and which joints it crosses. Peel away layers, switch to x-ray, or look from the front, back or side.
+- **Learn the anatomy.** Click any muscle for what it does, where it attaches, which joints it crosses and which exercises work it. Peel away layers, switch to x-ray, or look from the front, back or side.
 
 It also suits physio and sports-science students, coaches writing programmes, and anyone curious about how their body moves.
 
@@ -35,8 +35,7 @@ It also suits physio and sports-science students, coaches writing programmes, an
 
 ## Coming next
 
-- Movement animation: the body performs each rep, and muscles light up phase by phase.
-- 150+ exercises, "which exercises work this muscle" lookup, side-by-side compare and a workout builder.
+- 150+ exercises, side-by-side compare and a workout builder.
 
 ## Development
 
@@ -53,7 +52,7 @@ Educational only, not medical advice.
 
 ## Credits
 
-3D anatomy geometry adapted from **BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International** (https://creativecommons.org/licenses/by/4.0/). Changes: selection of muscles and bones, unit and axis conversion, smoothing, decimation, generated muscles, rigging.
+3D anatomy geometry adapted from **BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International** (https://creativecommons.org/licenses/by/4.0/). Changes: selection of muscles and bones, unit and axis conversion, smoothing, decimation, generated muscles.
 
 ## License
 

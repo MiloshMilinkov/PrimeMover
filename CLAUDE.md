@@ -1,22 +1,23 @@
 # HowWeMove
 
-Interactive 3D exercise anatomy explorer: pick an exercise, and a realistic human model (skeleton plus 86 muscle ids) shows which muscles work, how hard, and how, phase by phase. Working title; the final name is TBD.
+Interactive 3D exercise anatomy explorer: pick an exercise, and a realistic human model (skeleton plus 86 muscle ids) shows which muscles work, how hard, and how. Working title; the final name is TBD.
 
 Proprietary, all rights reserved (see `LICENSE`). Not open source.
 
 ## Status
 
-- Step 1 (research, architecture, schema) is done: `docs/01-research-and-plan.md`. The user chose asset option A (BodyParts3D, CC BY 4.0) with a skinned rig.
+- Step 1 (research, architecture, schema) is done: `docs/01-research-and-plan.md`. The user chose asset option A (BodyParts3D, CC BY 4.0).
 - Step 2 (viewer) is built: model, camera presets, studio light, layer and depth toggles, hover and click picking, muscle details, deep links `/muscle/:id`, mobile bottom sheet.
 - Step 3 is built: role highlighting, info panel, search and filters. The library has 128 exercises (62 measured with EMG, 34 from related studies, 32 from anatomy); method and dataset licences in `docs/02-activation-evidence.md`.
-- Next is step 4 (movement animation).
+- Step 4 (movement animation) was dropped by the user on 2026-11-25: the static model shows the muscles worked well enough. The model has no rig; do not add one unless asked.
+- Next is step 5.
 
 ## Build order (stop and show the user after each step)
 
 1. Asset research, architecture plan, data schema
 2. Viewer: model loaded, camera, lighting, layer toggles, hover and click muscles
 3. 30 well-researched exercises with highlighting, the info panel, and search and filters
-4. Movement animation with phase-based highlighting (skinned rig; motions as joint-angle data)
+4. ~~Movement animation~~ (dropped; see Status)
 5. 150+ exercises, then reverse lookup, compare mode, and the workout builder
 6. Polish: post-processing, transitions, mobile layout, performance (code-split three.js), accessibility
 
