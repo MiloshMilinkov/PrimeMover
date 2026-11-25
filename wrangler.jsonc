@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "howwemove",
+  "name": "prime-mover",
   "compatibility_date": "2026-11-01",
   // Static app: no Worker script. Cloudflare serves the Vite build in ./dist and
   // falls back to index.html for client routes such as /exercise/:id.

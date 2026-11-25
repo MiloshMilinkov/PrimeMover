@@ -1,5 +1,5 @@
 /*
- * HowWeMove
+ * Prime Mover
  * Copyright (c) 2026 Miloš Milinkov. All rights reserved.
  * Proprietary and confidential. See the LICENSE file.
  *

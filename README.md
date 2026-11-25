@@ -1,17 +1,19 @@
-# HowWeMove
+<img src="public/favicon.svg" alt="" width="72" height="72">
+
+# Prime Mover
 
 > **⚠️ View only — not open source.**
 > This code is public for viewing only. Copying, modifying, deploying, redistributing or reusing any part of it (code, design, texts or branding), or using it to train AI models, is not allowed without written permission. See [LICENSE](LICENSE).
 
 **See which muscles an exercise works, on a real 3D body.** Pick an exercise and the model lights up the muscles doing the work, colour-coded by role and ranked by how hard they work, with the research behind it.
 
-**Live:** https://howwemove.milos300399.workers.dev
+**Live:** https://prime-mover.milos300399.workers.dev
 
 ![Barbell bench press: chest highlighted as the prime mover, front delts and triceps as synergists, with the muscle list on the right](docs/screenshots/exercise-bench-press.png)
 
 ## Made for trainers and their clients
 
-HowWeMove is built to be shown, not just read. A personal trainer can pull it up on a phone, tablet or gym screen and answer "what is this actually working?" in seconds.
+Prime Mover is built to be shown, not just read. A personal trainer can pull it up on a phone, tablet or gym screen and answer "what is this actually working?" in seconds.
 
 - **Explain an exercise.** Open it and the body shows the prime movers, the helpers, the muscles holding you steady and the ones being stretched. Every exercise lists the movement step by step, coaching cues, common mistakes with fixes, and variations.
 - **Show why technique matters.** Notes explain what changes with grip, depth or stance. For example, the hamstrings lengthen under load in a Romanian deadlift, and a decline press shifts work to the lower chest.

@@ -78,7 +78,7 @@ function useRouteState() {
 
   const name = exercise?.name ?? (muscle ? MUSCLE_BY_ID[muscle].name : null);
   useEffect(() => {
-    document.title = name ? `${name} | HowWeMove` : 'HowWeMove';
+    document.title = name ? `${name} | Prime Mover` : 'Prime Mover';
   }, [name]);
 
   return { exercise: exercise ?? null, muscle, name };

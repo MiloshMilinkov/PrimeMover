@@ -1,5 +1,5 @@
 /**
- * HowWeMove data schema (draft for step 1 review).
+ * Prime Mover data schema (draft for step 1 review).
  *
  * Exercises are data, not code. Every exercise is a typed entry that references
  * muscles, joints and motions by id. A Vitest suite (step 3) will check referential

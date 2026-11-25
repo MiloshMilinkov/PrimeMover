@@ -1,0 +1,8 @@
+{
+  // The Worker that served the site before the rename. It now only forwards to
+  // prime-mover.milos300399.workers.dev. Deploy: npm run deploy:redirect
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "howwemove",
+  "main": "index.js",
+  "compatibility_date": "2026-11-01"
+}

@@ -1,5 +1,5 @@
 {
-  "name": "howwemove",
+  "name": "prime-mover",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "model:map": "node pipeline/scripts/build-mesh-map.mjs pipeline/.source/bp3d pipeline/mesh-map.csv",
     "model:build": "node pipeline/scripts/build-model.mjs pipeline/.source/bp3d pipeline/mesh-map.csv public/models",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:redirect": "wrangler deploy --config ops/old-url-redirect/wrangler.jsonc"
   },
   "dependencies": {
     "@react-three/drei": "10.7.9",
