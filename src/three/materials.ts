@@ -7,7 +7,7 @@ import {
   UnsignedByteType,
   type IUniform,
 } from 'three';
-import { ROLES } from '../data/roles';
+import { NEUTRAL_CODE, NEUTRAL_COLOR, ROLES, type RoleStyle } from '../data/roles';
 
 /**
  * Per-slot muscle state, one RGBA8 texel per slot (slot = muscle id x side):
@@ -24,10 +24,21 @@ export function createStateTexture(slotCount: number) {
 }
 
 const TISSUE = new Color('#8d2f2b');
-/** Indexed by role code; index 0 (no role) is unused. */
-const ROLE_COLORS = [new Color(0), ...[...ROLES].sort((a, b) => a.code - b.code).map((r) => new Color(r.color))];
+/** Indexed by role code: 0 unused, ROLES in code order (1..n), then NEUTRAL_CODE. */
+const ROLE_COLORS = [new Color(0), ...ROLES.map((r) => new Color(r.color)), new Color(NEUTRAL_COLOR)];
+const ROLE_GLOW = [0, ...ROLES.map((r) => r.glow), 0];
+
+/** GLSL for each legend pattern (1 = dark part), so the model and the legend share one table. */
+const PATTERN_GLSL: Record<RoleStyle['pattern'], string> = {
+  solid: '0.0',
+  stripes: 'hwmStripe(dot(vBindPos, vec3(0.577)) * 55.0)',
+  dots: 'hwmDots(vBindPos * 60.0)',
+  bands: 'hwmStripe(dot(vBindPos, vFibreW) * 48.0)',
+};
+const PATTERN_BRANCHES = ROLES.map((r) => `if (hwmRole == ${r.code}) pattern = ${PATTERN_GLSL[r.pattern]};`).join('\n  ');
 
 const VERTEX_DECL = /* glsl */ `
+uniform float uPass;
 attribute float _slot;
 attribute vec3 _fibre;
 uniform sampler2D uState;
@@ -42,24 +53,61 @@ vFibreW = normalize(mat3(modelMatrix) * _fibre);
 vBindPos = (modelMatrix * vec4(position, 1.0)).xyz;
 `;
 
+/**
+ * Drops triangles that belong to the other pass (or are hidden) before rasterising:
+ * every triangle sits inside one slot, so moving its vertices outside the clip
+ * volume culls it whole. This keeps discard out of the fragment shader.
+ */
+const VERTEX_CULL = /* glsl */ `
+#include <project_vertex>
+{
+  float a = vState.b;
+  bool keep = uPass < 0.5 ? a >= 0.996 : (a >= 0.004 && a < 0.996);
+  if (!keep) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
+}
+`;
+
 const FRAGMENT_DECL = /* glsl */ `
 uniform float uPass;
-uniform vec3 uRoleColor[5];
+uniform vec3 uRoleColor[${NEUTRAL_CODE + 1}];
+uniform float uRoleGlow[${NEUTRAL_CODE + 1}];
 varying vec4 vState;
 varying vec3 vFibreW;
 varying vec3 vBindPos;
+
+// Anti-aliased pattern helpers (1 = dark part of the pattern). They fade out when
+// the pattern would be smaller than a few pixels.
+float hwmStripe(float s) {
+  float w = fwidth(s);
+  float f = abs(fract(s) - 0.5) * 2.0;
+  return smoothstep(0.5 - w, 0.5 + w, f) * (1.0 - smoothstep(0.3, 0.8, w));
+}
+float hwmDots(vec3 p) {
+  vec3 c = fract(p) - 0.5;
+  float d = length(c);
+  float w = fwidth(d) * 1.5;
+  float scale = length(fwidth(p));
+  return (1.0 - smoothstep(0.26 - w, 0.26 + w, d)) * (1.0 - smoothstep(0.3, 0.8, scale));
+}
 `;
 
 const FRAGMENT_COLOR = /* glsl */ `
 float hwmAlpha = vState.b;
-if (uPass < 0.5) { if (hwmAlpha < 0.996) discard; }
-else if (hwmAlpha < 0.004 || hwmAlpha >= 0.996) discard;
 float hwmFlag = vState.a;
 float hwmHover = step(0.25, hwmFlag) * (1.0 - step(0.75, hwmFlag));
 float hwmSelected = step(0.75, hwmFlag);
 int hwmRole = int(vState.r * 255.0 + 0.5);
+float hwmLevel = vState.g;
 vec3 hwmBase = diffuse;
-if (hwmRole > 0) hwmBase = mix(diffuse * 0.55, uRoleColor[hwmRole], 0.45 + 0.55 * vState.g);
+if (hwmRole == ${NEUTRAL_CODE}) {
+  hwmBase = uRoleColor[${NEUTRAL_CODE}];
+} else if (hwmRole > 0) {
+  hwmBase = mix(diffuse * 0.6, uRoleColor[hwmRole], 0.4 + 0.6 * hwmLevel);
+  // Role patterns in object space, so they stay put as the camera orbits.
+  float pattern = 0.0;
+  ${PATTERN_BRANCHES}
+  hwmBase *= 1.0 - 0.4 * pattern;
+}
 hwmBase = mix(hwmBase, hwmBase * 1.4 + 0.05, hwmHover);
 hwmBase = mix(hwmBase, hwmBase * 1.25 + vec3(0.1, 0.08, 0.06), hwmSelected);
 vec4 diffuseColor = vec4(hwmBase, opacity);
@@ -88,6 +136,8 @@ if (uPass > 0.5) diffuseColor.a = hwmAlpha * mix(0.18, 1.0, hwmFres);
 const FRAGMENT_EMISSIVE = /* glsl */ `
 #include <emissivemap_fragment>
 totalEmissiveRadiance += vec3(0.93, 0.9, 0.85) * (hwmSelected * (0.06 + hwmFres * 1.6) + hwmHover * (0.02 + hwmFres * 0.5));
+// Working muscles glow a little in their role colour; prime movers most.
+totalEmissiveRadiance += uRoleColor[hwmRole] * uRoleGlow[hwmRole] * hwmLevel * (0.6 + 0.4 * hwmFres);
 `;
 
 /** PBR muscle tissue. `pass` splits opaque and translucent muscles into two draws. */
@@ -108,12 +158,14 @@ export function createMuscleMaterial(state: DataTexture, pass: 'opaque' | 'trans
     uState: { value: state },
     uPass: { value: pass === 'opaque' ? 0 : 1 },
     uRoleColor: { value: ROLE_COLORS },
+    uRoleGlow: { value: ROLE_GLOW },
   };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERTEX_DECL}`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${VERTEX_BODY}`);
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${VERTEX_BODY}`)
+      .replace('#include <project_vertex>', VERTEX_CULL);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${FRAGMENT_DECL}`)
       .replace('vec4 diffuseColor = vec4( diffuse, opacity );', FRAGMENT_COLOR)

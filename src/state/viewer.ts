@@ -1,7 +1,8 @@
 import type { Sphere } from 'three';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { MuscleId, MuscleLayer } from '../data/schema';
+import { framingIds } from '../data/exercises';
+import type { Exercise, MuscleId, MuscleLayer } from '../data/schema';
 import { DESKTOP_QUERY } from '../ui/breakpoints';
 
 export type LayerMode = 'full' | 'skeleton' | 'muscles' | 'xray';
@@ -9,11 +10,11 @@ export type LayerMode = 'full' | 'skeleton' | 'muscles' | 'xray';
 export type Depth = 0 | 1 | 2;
 export type ViewPreset = 'front' | 'back' | 'side';
 export type Quality = 'high' | 'low';
-export type Side = 'left' | 'right' | 'center';
+export type ModelSide = 'left' | 'right' | 'center';
 
 export interface ModelSlot {
   id: MuscleId | null;
-  side: Side;
+  side: ModelSide;
   /** For unlisted BodyParts3D muscles (no app id): name without side, and layer. */
   name?: string;
   layer?: MuscleLayer;
@@ -21,7 +22,7 @@ export interface ModelSlot {
 
 export interface ModelPart {
   name: string;
-  side: Side;
+  side: ModelSide;
 }
 
 export interface ModelMeta {
@@ -56,8 +57,13 @@ interface ViewerState {
   meta: ModelMeta | null;
   /** World-space bounding sphere of each muscle (both sides), filled on model load. */
   spheres: Map<MuscleId, Sphere> | null;
-  /** Camera framing request for a muscle; `nonce` re-triggers the same one. */
-  focus: { id: MuscleId; nonce: number } | null;
+  /**
+   * Camera framing request: fit these muscles, optionally from a preset side, with
+   * `pad` times their radius around them. `nonce` re-triggers the same request.
+   */
+  framing: { ids: MuscleId[]; preset?: ViewPreset; pad: number; nonce: number } | null;
+  /** Active exercise id (from the route), or null when browsing muscles. */
+  exercise: string | null;
   insets: Insets;
   setLayerMode: (m: LayerMode) => void;
   setDepth: (d: Depth) => void;
@@ -67,7 +73,10 @@ interface ViewerState {
   setPreview: (id: MuscleId | null) => void;
   setSelected: (id: MuscleId | null) => void;
   setMeta: (meta: ModelMeta, spheres: Map<MuscleId, Sphere>) => void;
-  focusMuscle: (id: MuscleId) => void;
+  frame: (ids: MuscleId[], preset?: ViewPreset, pad?: number) => void;
+  /** Frames an exercise's working muscles (with more context than a single muscle). */
+  frameExercise: (exercise: Exercise) => void;
+  setExercise: (id: string | null) => void;
   setInsets: (insets: Insets) => void;
 }
 
@@ -77,7 +86,7 @@ const prefersLow = () =>
 
 export const useViewer = create<ViewerState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       layerMode: 'full',
       depth: 0,
       quality: prefersLow() ? 'low' : 'high',
@@ -87,7 +96,8 @@ export const useViewer = create<ViewerState>()(
       selected: null,
       meta: null,
       spheres: null,
-      focus: null,
+      framing: null,
+      exercise: null,
       insets: { top: 0, right: 0, bottom: 0, left: 0 },
       setLayerMode: (layerMode) => set({ layerMode }),
       setDepth: (depth) => set({ depth }),
@@ -97,7 +107,9 @@ export const useViewer = create<ViewerState>()(
       setPreview: (preview) => set({ preview }),
       setSelected: (selected) => set({ selected }),
       setMeta: (meta, spheres) => set({ meta, spheres }),
-      focusMuscle: (id) => set((s) => ({ focus: { id, nonce: (s.focus?.nonce ?? 0) + 1 } })),
+      frame: (ids, preset, pad = 1.35) => set((s) => ({ framing: { ids, preset, pad, nonce: (s.framing?.nonce ?? 0) + 1 } })),
+      frameExercise: (exercise) => get().frame(framingIds(exercise), exercise.camera?.preset, 1.5),
+      setExercise: (exercise) => set({ exercise }),
       setInsets: (insets) =>
         set((s) => {
           const same = (Object.keys(insets) as (keyof Insets)[]).every((k) => Math.abs(s.insets[k] - insets[k]) < 1);

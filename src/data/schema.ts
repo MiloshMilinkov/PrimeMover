@@ -6,6 +6,8 @@
  * integrity: unique ids, known muscle/joint/motion/source ids, at least one prime mover,
  * phases that match the motion's phase markers, and valid variation links.
  */
+import type { MOTION_IDS } from './motions';
+import type { SourceKey } from './sources';
 
 /* ------------------------------------------------------------------ */
 /* Muscles                                                             */
@@ -367,7 +369,8 @@ export interface Exercise {
 /* Motions (animation data)                                            */
 /* ------------------------------------------------------------------ */
 
-export type MotionId = string; // validated against the motion registry
+/** Ids from the motion registry (src/data/motions.ts); typos fail to compile. */
+export type MotionId = (typeof MOTION_IDS)[number];
 
 /** Rotation of one rig joint in anatomical terms, in degrees. */
 export interface JointPose {
@@ -403,7 +406,8 @@ export interface Motion {
 /* Sources                                                             */
 /* ------------------------------------------------------------------ */
 
-export type SourceId = string;
+/** Ids defined in src/data/sources.ts; unknown citations fail to compile. */
+export type SourceId = SourceKey;
 
 export interface Source {
   id: SourceId; // "escamilla-2001-squat"

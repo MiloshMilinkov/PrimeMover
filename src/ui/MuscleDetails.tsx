@@ -1,27 +1,11 @@
 import { Link } from 'react-router';
+import { JOINT_LABEL } from '../data/labels';
 import { MUSCLE_BY_ID } from '../data/muscles';
 import type { JointId, MuscleId, MuscleLayer } from '../data/schema';
 import { capitalise, joinList } from '../lib/text';
 import { useViewer } from '../state/viewer';
 import { bodyHalfWidthPx } from '../three/camera';
 import { useWindowSize } from './layout';
-
-const JOINT_LABEL: Record<JointId, string> = {
-  'cervical-spine': 'neck',
-  'thoracic-spine': 'upper back',
-  'lumbar-spine': 'lower back',
-  scapulothoracic: 'shoulder blade',
-  shoulder: 'shoulder',
-  elbow: 'elbow',
-  radioulnar: 'forearm rotation',
-  wrist: 'wrist',
-  fingers: 'fingers',
-  hip: 'hip',
-  knee: 'knee',
-  ankle: 'ankle',
-  subtalar: 'subtalar joint',
-  toes: 'toes',
-};
 
 const LAYER_LABEL: Record<MuscleLayer, string> = {
   superficial: 'Outer layer',
@@ -35,7 +19,7 @@ const listJoints = (joints: JointId[]) =>
 /** `titleHidden` keeps the name for screen readers when a sheet header already shows it. */
 export function MuscleDetails({ id, titleHidden = false }: { id: MuscleId; titleHidden?: boolean }) {
   const m = MUSCLE_BY_ID[id];
-  const focusMuscle = useViewer((s) => s.focusMuscle);
+  const frame = useViewer((s) => s.frame);
   const rows: [string, string][] = [
     ['Origin', m.origin],
     ['Insertion', m.insertion],
@@ -68,7 +52,7 @@ export function MuscleDetails({ id, titleHidden = false }: { id: MuscleId; title
       </dl>
 
       <div className="flex flex-wrap gap-2 pt-1">
-        <button type="button" onClick={() => focusMuscle(id)} className="btn-primary">
+        <button type="button" onClick={() => frame([id])} className="btn-primary">
           Zoom to muscle
         </button>
         <Link to="/" className="btn-secondary">

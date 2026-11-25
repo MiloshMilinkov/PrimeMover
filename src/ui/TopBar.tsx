@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { Link } from 'react-router';
 import { useViewer } from '../state/viewer';
 import { VIEWS } from './views';
@@ -19,11 +19,13 @@ export function QualityToggle({ className = '' }: { className?: string }) {
   );
 }
 
-export function TopBar({ ref }: { ref?: Ref<HTMLElement> }) {
+/** `children` render under the bar (the mobile legend), inside the space the camera keeps clear. */
+export function TopBar({ ref, children }: { ref?: Ref<HTMLElement>; children?: ReactNode }) {
   const goTo = useViewer((s) => s.goTo);
 
   return (
-    <header ref={ref} className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-4 pt-3 md:px-6 md:pt-4">
+    <header ref={ref} className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col gap-2 px-4 pt-3 md:px-6 md:pt-4">
+      <div className="flex items-center justify-between gap-3">
       <Link to="/" className="pointer-events-auto flex items-baseline gap-2 rounded-md text-ivory">
         <span className="text-[17px] font-semibold tracking-[-0.01em]">HowWeMove</span>
         <span className="latin hidden text-[15px] text-fog sm:inline">anatomy in motion</span>
@@ -45,6 +47,8 @@ export function TopBar({ ref }: { ref?: Ref<HTMLElement> }) {
         </nav>
         <QualityToggle className="hidden md:block" />
       </div>
+      </div>
+      {children}
     </header>
   );
 }

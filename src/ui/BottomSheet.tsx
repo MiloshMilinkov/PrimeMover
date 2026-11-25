@@ -11,9 +11,23 @@ const snapHeight = (snap: Snap, vh: number) =>
   snap === 'peek' ? SHEET_PEEK : snap === 'half' ? Math.round(vh * 0.5) : fullHeight(vh);
 
 /** Mobile panel with three snap heights. The model stays full-screen behind it. */
-export function BottomSheet({ title, children, snapTo }: { title: ReactNode; children: ReactNode; snapTo?: Snap }) {
+export function BottomSheet({
+  title,
+  children,
+  snapTo,
+  onCoverChange,
+}: {
+  title: ReactNode;
+  children: ReactNode;
+  snapTo?: Snap;
+  /** Screen height the sheet covers at its current snap. */
+  onCoverChange?: (px: number) => void;
+}) {
   const { height: vh } = useWindowSize();
   const [snap, setSnap] = useState<Snap>(snapTo ?? 'peek');
+  useEffect(() => {
+    onCoverChange?.(snapHeight(snap, vh));
+  }, [snap, vh, onCoverChange]);
   const full = fullHeight(vh);
   const y = useMotionValue(full - snapHeight(snap, vh));
 

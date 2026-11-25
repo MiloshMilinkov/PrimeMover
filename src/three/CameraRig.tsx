@@ -1,11 +1,11 @@
 import { CameraControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import type { PerspectiveCamera } from 'three';
+import { Box3, Sphere, type PerspectiveCamera } from 'three';
 import { useViewer } from '../state/viewer';
 import { REDUCED_MOTION_QUERY } from '../ui/breakpoints';
 import { useMediaQuery } from '../ui/layout';
-import { BASE_FOV, PRESETS, TARGET_Y } from './camera';
+import { BASE_FOV, PRESETS, presetAngles, TARGET_Y } from './camera';
 
 export function CameraRig() {
   const ref = useRef<CameraControls>(null);
@@ -13,7 +13,7 @@ export function CameraRig() {
   const size = useThree((s) => s.size);
   const invalidate = useThree((s) => s.invalidate);
   const view = useViewer((s) => s.view);
-  const focus = useViewer((s) => s.focus);
+  const framing = useViewer((s) => s.framing);
   const spheres = useViewer((s) => s.spheres);
   const insets = useViewer((s) => s.insets);
   const reduceMotion = useMediaQuery(REDUCED_MOTION_QUERY);
@@ -23,13 +23,24 @@ export function CameraRig() {
     ref.current?.setLookAt(x, y, z, 0, TARGET_Y, 0, view.nonce > 0 && !reduceMotion);
   }, [view, reduceMotion]);
 
+  // Frame a set of muscles: turn to the requested side, then fit their bounds.
   useEffect(() => {
-    const sphere = focus && spheres?.get(focus.id);
-    if (!sphere) return;
-    const padded = sphere.clone();
-    padded.radius = Math.max(sphere.radius * 1.35, 0.12);
-    ref.current?.fitToSphere(padded, !reduceMotion);
-  }, [focus, spheres, reduceMotion]);
+    const controls = ref.current;
+    if (!controls || !framing || !spheres) return;
+    const box = new Box3();
+    for (const id of framing.ids) {
+      const s = spheres.get(id);
+      if (s) box.union(s.getBoundingBox(new Box3()));
+    }
+    if (box.isEmpty()) return;
+    const sphere = box.getBoundingSphere(new Sphere());
+    sphere.radius = Math.max(sphere.radius * framing.pad, 0.12);
+    if (framing.preset) {
+      const { azimuth, polar } = presetAngles(framing.preset);
+      controls.rotateTo(azimuth, polar, !reduceMotion);
+    }
+    controls.fitToSphere(sphere, !reduceMotion);
+  }, [framing, spheres, reduceMotion]);
 
   // Keep the body centred in the space the panels leave free, at any zoom: the
   // camera describes a larger frame and the canvas shows an off-centre window of it.

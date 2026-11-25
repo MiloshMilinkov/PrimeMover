@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { MUSCLE_BY_ID, MUSCLES } from '../src/data/muscles';
 import { MUSCLE_IDS } from '../src/data/schema';
 import { readMeshMap } from '../pipeline/scripts/lib/mesh-map.mjs';
+import { NEUTRAL_CODE, ROLES } from '../src/data/roles';
 
 const csv = readMeshMap(fileURLToPath(new URL('../pipeline/mesh-map.csv', import.meta.url)));
 
@@ -35,5 +36,12 @@ describe('mesh map', () => {
   it('never maps one mesh file to two places', () => {
     const files = csv.filter((r) => r.file).map((r) => r.file);
     expect(new Set(files).size).toBe(files.length);
+  });
+});
+
+describe('role table', () => {
+  it('numbers roles 1..n in order with the neutral code after them (the shader indexes by code)', () => {
+    expect(ROLES.map((r) => r.code)).toEqual(ROLES.map((_, i) => i + 1));
+    expect(NEUTRAL_CODE).toBe(ROLES.length + 1);
   });
 });

@@ -3,7 +3,9 @@ import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Box3, Matrix4, Mesh, Scene, Sphere, Vector3, WebGLRenderTarget, type BufferGeometry, type Object3D } from 'three';
+import { EXERCISE_BY_ID, exercisePath } from '../data/exercises';
 import type { MuscleId } from '../data/schema';
+import { involvementFor } from '../lib/involvement';
 import { computeSlotState } from '../lib/slotState';
 import { useViewer, type Hover, type ModelMeta, type Quality } from '../state/viewer';
 import {
@@ -110,9 +112,12 @@ export function Body() {
   const selected = useViewer((s) => s.selected);
   const hoverSlot = useViewer((s) => (s.hover?.kind === 'muscle' ? s.hover.slot : null));
   const preview = useViewer((s) => s.preview);
+  const exerciseId = useViewer((s) => s.exercise);
+  const exercise = exerciseId ? EXERCISE_BY_ID[exerciseId] : undefined;
+  const involvement = exercise ? involvementFor(exercise) : null; // cached per exercise
   useEffect(() => {
     const { anyTranslucent } = computeSlotState(
-      { slots: model.meta.slots, layerMode, depth, hoverSlot, preview, selected },
+      { slots: model.meta.slots, layerMode, depth, hoverSlot, preview, selected, involvement },
       model.stateBytes,
     );
     model.state.needsUpdate = true;
@@ -122,7 +127,7 @@ export function Body() {
     model.pickMuscles.visible = model.muscles.visible;
     model.pickBones.visible = model.skeleton.visible;
     invalidate();
-  }, [model, layerMode, depth, selected, hoverSlot, preview, invalidate]);
+  }, [model, layerMode, depth, selected, hoverSlot, preview, involvement, invalidate]);
 
   /* ---------------- GPU picking ---------------- */
   useEffect(() => {
@@ -200,11 +205,11 @@ export function Body() {
       renderPick(e.offsetX, e.offsetY);
       gl.readRenderTargetPixels(model.pickTarget, 0, 0, 1, 1, pixel);
       const picked = decodePick(idOf());
-      if (picked === null) navigate('/');
-      else if (picked.kind === 'muscle') {
-        const id = model.meta.slots[picked.slot]?.id;
-        if (id) navigate(`/muscle/${id}`);
-      }
+      const exercise = useViewer.getState().exercise;
+      const id = picked?.kind === 'muscle' ? model.meta.slots[picked.slot]?.id : null;
+      // In an exercise, a muscle opens inside the exercise panel; empty space clears it.
+      const target = exercise ? exercisePath(exercise, id) : id ? `/muscle/${id}` : picked === null ? '/' : null;
+      if (target && target !== window.location.pathname + window.location.search) navigate(target);
     };
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerleave', onLeave);

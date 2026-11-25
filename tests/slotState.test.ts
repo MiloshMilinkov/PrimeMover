@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { computeSlotState, HOVER_FLAG, OPAQUE, SELECTED_FLAG, TRANSLUCENT, type SlotStateInput } from '../src/lib/slotState';
 import type { ModelSlot } from '../src/state/viewer';
+import { EXERCISE_BY_ID } from '../src/data/exercises';
+import { NEUTRAL_CODE, ROLE_BY_NAME, TIER_LEVEL } from '../src/data/roles';
+import type { Exercise } from '../src/data/schema';
+import { involvementFor, WORKING_SIDE } from '../src/lib/involvement';
 
 // deltoid-anterior is superficial, brachialis intermediate, supraspinatus deep.
 const slots: ModelSlot[] = [
@@ -13,11 +17,46 @@ const slots: ModelSlot[] = [
 
 const run = (over: Partial<SlotStateInput>) => {
   const out = new Uint8Array(slots.length * 4);
-  computeSlotState({ slots, layerMode: 'full', depth: 0, hoverSlot: null, preview: null, selected: null, ...over }, out);
+  computeSlotState({ slots, layerMode: 'full', depth: 0, hoverSlot: null, preview: null, selected: null, involvement: null, ...over }, out);
+  const role = (i: number) => out[i * 4];
+  const level = (i: number) => out[i * 4 + 1];
   const alpha = (i: number) => out[i * 4 + 2];
   const flag = (i: number) => out[i * 4 + 3];
-  return { alpha, flag };
+  return { role, level, alpha, flag };
 };
+
+// The front deltoid is the prime mover on the working side only; the brachialis
+// is a low-tier synergist on both sides.
+const exercise: Exercise = {
+  ...EXERCISE_BY_ID['barbell-curl'],
+  laterality: 'unilateral',
+  muscles: [
+    { id: 'deltoid-anterior', role: 'prime', tier: 'high', note: 'Test prime mover.', side: 'working' },
+    { id: 'brachialis', role: 'synergist', tier: 'low', note: 'Test synergist.' },
+  ],
+};
+const working = slots.findIndex((s) => s.id === 'deltoid-anterior' && s.side === WORKING_SIDE);
+const other = slots.findIndex((s) => s.id === 'deltoid-anterior' && s.side !== WORKING_SIDE);
+
+describe('computeSlotState with an exercise', () => {
+  const involvement = involvementFor(exercise);
+
+  it('colours involved muscles by role and tier on the working side only', () => {
+    const { role, level, alpha } = run({ involvement });
+    expect(role(working)).toBe(ROLE_BY_NAME.prime.code);
+    expect(level(working)).toBe(Math.round(TIER_LEVEL.high * 255));
+    expect(alpha(working)).toBe(OPAQUE);
+    expect(role(2)).toBe(ROLE_BY_NAME.synergist.code); // brachialis (intermediate layer)
+    expect(alpha(2)).toBe(OPAQUE);
+  });
+
+  it('turns uninvolved outer muscles grey and see-through and hides deeper ones', () => {
+    const { role, alpha } = run({ involvement });
+    expect(role(other)).toBe(NEUTRAL_CODE);
+    expect(alpha(other)).toBe(TRANSLUCENT);
+    expect(alpha(3)).toBe(0); // supraspinatus: deep and uninvolved
+  });
+});
 
 describe('computeSlotState', () => {
   it('shows every muscle opaque in the full body view', () => {

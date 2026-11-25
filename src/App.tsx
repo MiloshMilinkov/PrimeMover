@@ -1,5 +1,6 @@
 import { Component, useEffect, useState, type ReactNode } from 'react';
-import { useMatch, useNavigate } from 'react-router';
+import { useMatch, useNavigate, useSearchParams } from 'react-router';
+import { EXERCISE_BY_ID } from './data/exercises';
 import { MUSCLE_BY_ID } from './data/muscles';
 import type { MuscleId } from './data/schema';
 import { useViewer } from './state/viewer';
@@ -9,10 +10,12 @@ import { DESKTOP_QUERY, WIDE_QUERY } from './ui/breakpoints';
 import { Footer } from './ui/Footer';
 import { HoverTooltip } from './ui/HoverTooltip';
 import { LayerControls } from './ui/LayerControls';
-import { PANEL_WIDTH, RAIL_WIDTH, SHEET_PEEK, useInsetTracking, useMediaQuery } from './ui/layout';
+import { PANEL_WIDTH, RAIL_WIDTH, SHEET_PEEK, useInsetTracking, useMediaQuery, useWindowSize } from './ui/layout';
 import { LoadingScreen } from './ui/LoadingScreen';
 import { MuscleDetails, PlateCaption } from './ui/MuscleDetails';
-import { MuscleList } from './ui/MuscleList';
+import { ExercisePanel } from './ui/ExercisePanel';
+import { Legend } from './ui/Legend';
+import { Library } from './ui/Library';
 import { QualityToggle, TopBar } from './ui/TopBar';
 import { VIEWS } from './ui/views';
 
@@ -37,20 +40,40 @@ class ModelErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
   }
 }
 
-/** Keeps the selected muscle in sync with /muscle/:id and the page title. */
-function useRouteSelection() {
-  const match = useMatch('/muscle/:muscleId');
+/**
+ * Route state: /muscle/:id, or /exercise/:id with an optional ?m=<muscle> focus.
+ * Syncs the store, frames the exercise's working muscles, and sets the page title.
+ */
+function useRouteState() {
+  const muscleMatch = useMatch('/muscle/:muscleId');
+  const exerciseMatch = useMatch('/exercise/:exerciseId');
+  const [params] = useSearchParams();
   const navigate = useNavigate();
-  const raw = match?.params.muscleId;
-  const id = raw && raw in MUSCLE_BY_ID ? (raw as MuscleId) : null;
-  const setSelected = useViewer((s) => s.setSelected);
+  const exercise = exerciseMatch ? EXERCISE_BY_ID[exerciseMatch.params.exerciseId ?? ''] : undefined;
+  const rawMuscle = muscleMatch?.params.muscleId ?? (exercise ? params.get('m') : null);
+  const muscle = rawMuscle && rawMuscle in MUSCLE_BY_ID ? (rawMuscle as MuscleId) : null;
+  const invalid = (muscleMatch && !muscle) || (exerciseMatch && !exercise);
 
   useEffect(() => {
-    if (raw && !id) navigate('/', { replace: true });
-    setSelected(id);
-    document.title = id ? `${MUSCLE_BY_ID[id].name} | HowWeMove` : 'HowWeMove';
-  }, [raw, id, navigate, setSelected]);
-  return id;
+    if (invalid) navigate('/', { replace: true });
+  }, [invalid, navigate]);
+
+  useEffect(() => {
+    useViewer.getState().setSelected(muscle);
+  }, [muscle]);
+
+  useEffect(() => {
+    const { setExercise, frameExercise } = useViewer.getState();
+    setExercise(exercise?.id ?? null);
+    if (exercise) frameExercise(exercise);
+  }, [exercise]);
+
+  const name = exercise?.name ?? (muscle ? MUSCLE_BY_ID[muscle].name : null);
+  useEffect(() => {
+    document.title = name ? `${name} | HowWeMove` : 'HowWeMove';
+  }, [name]);
+
+  return { exercise: exercise ?? null, muscle, name };
 }
 
 function useShortcuts() {
@@ -64,7 +87,7 @@ function useShortcuts() {
       else if (e.key === 'Escape') navigate('/');
       else if (e.key === '/') {
         e.preventDefault();
-        document.getElementById('muscle-search')?.focus();
+        (document.getElementById('exercise-search') ?? document.getElementById('muscle-search'))?.focus();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -73,14 +96,23 @@ function useShortcuts() {
 }
 
 export default function App() {
-  const selected = useRouteSelection();
+  const { exercise, muscle, name } = useRouteState();
   useShortcuts();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const wide = useMediaQuery(WIDE_QUERY);
   const [railOpen, setRailOpen] = useState(false);
   const railVisible = desktop && (wide || railOpen);
-  const track = useInsetTracking(desktop ? 0 : SHEET_PEEK);
+  const { height: vh } = useWindowSize();
+  const [sheetCover, setSheetCover] = useState(SHEET_PEEK);
+  // A fully open sheet hides the body anyway; frame as if it were half open.
+  const track = useInsetTracking(desktop ? 0 : Math.min(sheetCover, vh / 2));
   const insets = useViewer((s) => s.insets);
+
+  const detail = exercise ? (
+    <ExercisePanel exercise={exercise} focus={muscle} titleHidden={!desktop} />
+  ) : muscle ? (
+    <MuscleDetails id={muscle} titleHidden={!desktop} />
+  ) : null;
 
   return (
     <div
@@ -92,41 +124,42 @@ export default function App() {
       <ModelErrorBoundary>
         <Scene />
       </ModelErrorBoundary>
-      <TopBar ref={track('top')} />
+      <TopBar ref={track('top')}>
+        {!desktop && exercise && <Legend className="glass pointer-events-auto rounded-pill px-3 py-1.5" />}
+      </TopBar>
 
       {desktop && !wide && (
         <button
           type="button"
           onClick={() => setRailOpen((o) => !o)}
           aria-expanded={railOpen}
-          aria-controls="muscle-rail"
+          aria-controls="library-rail"
           className="pill glass absolute left-6 top-16 z-20"
         >
-          {railOpen ? 'Hide muscles' : 'Browse muscles'}
+          {railOpen ? 'Hide list' : 'Browse'}
         </button>
       )}
 
       {railVisible && (
         <aside
           ref={track('left')}
-          id="muscle-rail"
-          aria-label="Muscle list"
+          id="library-rail"
+          aria-label="Exercise and muscle library"
           className="glass absolute bottom-4 left-6 top-28 z-20 flex flex-col pt-4 wide:top-16"
           style={{ width: RAIL_WIDTH }}
         >
-          <h2 className="px-4 pb-2 text-[15px] font-semibold">Muscles</h2>
-          <MuscleList onPick={() => !wide && setRailOpen(false)} />
+          <Library onPick={() => !wide && setRailOpen(false)} />
         </aside>
       )}
 
-      {desktop && selected && (
+      {desktop && detail && (
         <aside
           ref={track('right')}
-          aria-label="Muscle details"
+          aria-label={exercise ? 'Exercise details' : 'Muscle details'}
           className="glass absolute bottom-4 right-6 top-16 z-20 overflow-y-auto p-5"
           style={{ width: PANEL_WIDTH }}
         >
-          <MuscleDetails id={selected} />
+          {detail}
         </aside>
       )}
 
@@ -136,6 +169,7 @@ export default function App() {
           className="pointer-events-none absolute bottom-2.5 z-20 flex flex-col items-center gap-2 px-4"
           style={{ left: Math.max(0, insets.left - 8), right: Math.max(0, insets.right - 8) }}
         >
+          {exercise && <Legend className="glass pointer-events-auto rounded-pill px-3 py-1.5" />}
           <LayerControls className="glass pointer-events-auto p-1.5" />
           <Footer className="pointer-events-auto text-center" />
         </div>
@@ -146,19 +180,18 @@ export default function App() {
 
       {!desktop && (
         <BottomSheet
-          snapTo={selected ? 'half' : undefined}
+          snapTo={detail ? 'half' : undefined}
+          onCoverChange={setSheetCover}
           title={
             <div className="flex flex-col gap-2">
-              <p className="truncate text-[15px] font-semibold">{selected ? MUSCLE_BY_ID[selected].name : 'Explore the body'}</p>
+              <p className="truncate text-[15px] font-semibold">{name ?? 'Explore the body'}</p>
               <LayerControls />
             </div>
           }
         >
-          {selected ? (
-            <MuscleDetails id={selected} titleHidden />
-          ) : (
-            <div className="-mx-4 flex h-[60vh] flex-col">
-              <MuscleList />
+          {detail ?? (
+            <div className="-mx-4 flex h-[62vh] flex-col">
+              <Library />
             </div>
           )}
           <QualityToggle className="mt-6" />

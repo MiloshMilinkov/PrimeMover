@@ -1,14 +1,19 @@
 import { useEffect, useRef } from 'react';
+import { EXERCISE_BY_ID } from '../data/exercises';
 import { MUSCLE_BY_ID } from '../data/muscles';
+import { ROLE_BY_NAME, TIER_LABEL } from '../data/roles';
+import { involvementFor, involvementKey } from '../lib/involvement';
 import { capitalise } from '../lib/text';
-import { useViewer, type Side } from '../state/viewer';
+import { useViewer, type ModelSide } from '../state/viewer';
 
-const sideLabel = (side: Side) => (side === 'center' ? '' : side);
+const sideLabel = (side: ModelSide) => (side === 'center' ? '' : side);
 
 /** Follows the pointer over the model: muscle name and side, or the bone name. */
 export function HoverTooltip() {
   const hover = useViewer((s) => s.hover);
   const meta = useViewer((s) => s.meta);
+  const exerciseId = useViewer((s) => s.exercise);
+  const exercise = exerciseId ? EXERCISE_BY_ID[exerciseId] : undefined;
   const ref = useRef<HTMLDivElement>(null);
 
   // Position comes straight from pointer events, so moving within one muscle never re-renders.
@@ -30,7 +35,16 @@ export function HoverTooltip() {
     if (hover.kind === 'muscle') {
       const slot = meta.slots[hover.slot];
       title = slot?.id ? MUSCLE_BY_ID[slot.id].name : (slot?.name ?? '');
-      detail = [sideLabel(slot?.side ?? 'center'), slot?.id ? 'click for details' : ''].filter(Boolean).join(', ');
+      // In an exercise, say what this muscle does there (side-aware for one-sided lifts).
+      const involved = exercise && slot?.id ? involvementFor(exercise).get(involvementKey(slot.id, slot.side)) : undefined;
+      const usage = exercise
+        ? involved
+          ? `${ROLE_BY_NAME[involved.role].label.toLowerCase()}, ${TIER_LABEL[involved.tier].toLowerCase()}`
+          : 'not used here'
+        : slot?.id
+          ? 'click for details'
+          : '';
+      detail = [sideLabel(slot?.side ?? 'center'), usage].filter(Boolean).join(', ');
     } else {
       const part = meta.parts[hover.part];
       title = part?.name ?? '';
