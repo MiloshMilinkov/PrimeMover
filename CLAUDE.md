@@ -40,12 +40,13 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 
 ## Layout
 
-- `pipeline/scripts/`: `build-mesh-map.mjs`, `build-model.mjs`, `lib/geometry.mjs` (OBJ, weld, Taubin, simplify), `lib/generated-muscles.mjs` (the six muscles BodyParts3D lacks), `debug-landmarks.mjs`
-- `public/models/`: built GLBs. Muscles mesh attributes: `_slot` (muscle id x side), `_fibre`. Skeleton: `_part`. Scene extras: `howwemove.slots`, `howwemove.parts`.
+- `pipeline/scripts/`: `build-mesh-map.mjs`, `build-model.mjs`, `lib/geometry.mjs` (OBJ, weld, Taubin, simplify, trim, landmarks), `lib/mesh-map.mjs` (CSV reader, also used by tests), `lib/generated-muscles.mjs` (the six muscles BodyParts3D lacks)
+- `public/models/`: built GLBs. Muscles mesh attributes: `_slot` (muscle id x side), `_fibre`. Skeleton: `_part`. Scene extras: `howwemove.slots` (`{id, side}`, or `{id: null, side, name, layer}` for unlisted muscles) and `howwemove.parts` (`{name, side}`).
 - `src/data/`: `schema.ts` (types, `MUSCLE_IDS`), `muscles.ts` (registry: function, origin, insertion, layer)
-- `src/three/`: `Scene`, `Body` (materials, translucent pass, GPU picking), `CameraRig`, `materials.ts` (muscle shader, state texture)
+- `src/three/`: `Scene` (on-demand frameloop), `Body` (materials, translucent pass, GPU picking), `CameraRig`, `camera.ts` (presets, FOV), `materials.ts` (muscle shader, state texture, pick decoding)
+- `src/ui/`: `layout.ts` (`useInsetTracking` measures the panels for camera framing, `useWindowSize`), `breakpoints.ts`
 - `src/lib/slotState.ts`: per-slot RGBA state written to a DataTexture (role, tier, opacity, hover/selected)
-- `src/state/viewer.ts`, `src/ui/`, `tests/`, `docs/`
+- `src/state/viewer.ts` (Zustand; `quality` persists to localStorage), `tests/`, `docs/`
 
 ## Rules
 
@@ -61,7 +62,9 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 
 - Vite's file watcher on this Windows machine sometimes misses a quick second write and serves a stale module (errors like "X is not defined" after a correct edit). `touch` the file or restart the dev server.
 - Setup that mutates the `useGLTF`-cached scene must be idempotent: React StrictMode runs render code twice. See `prepareModel` in `Body.tsx`.
-- The camera uses an off-centre view window to keep the body clear of the panels. `CameraRig` owns `aspect` and `fov` (`camera.manual = true`), and picking composes its 1x1 view with that window.
+- The camera uses an off-centre view window to keep the body clear of the panels. `CameraRig` owns `aspect` and `fov` (`camera.manual = true`). Picking uses a pick matrix on whatever projection is current.
+- The canvas renders on demand (`frameloop="demand"`). Anything that changes the image outside React props must call `invalidate()`.
+- In the browser console during dev, `window.__r3f` (R3F state; use `.get()` for live values) and `window.__viewer` (Zustand store) help with checks.
 - A depth pre-pass for x-ray did not work, so x-ray instead makes only the outermost shown layer translucent and hides the layers under it.
 - BodyParts3D has no latissimus dorsi, rectus abdominis, internal oblique, transversus abdominis, quadratus lumborum or multifidus. They are generated from bone landmarks. The external oblique's aponeurosis is trimmed over the rectus.
 - BodyParts3D OBJ headers still carry the old CC BY-SA 2.1 JP text. The licence page (2025-02-27) says CC BY 4.0.
