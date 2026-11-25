@@ -10,6 +10,8 @@ export type LayerMode = 'full' | 'skeleton' | 'muscles' | 'xray';
 export type Depth = 0 | 1 | 2;
 export type ViewPreset = 'front' | 'back' | 'side';
 export type Quality = 'high' | 'low';
+/** Which body to show: BodyParts3D's male body, or the same body warped to female proportions. */
+export type BodyType = 'male' | 'female';
 export type ModelSide = 'left' | 'right' | 'center';
 
 export interface ModelSlot {
@@ -31,6 +33,8 @@ export interface ModelMeta {
   slots: ModelSlot[];
   parts: ModelPart[];
   credit: string;
+  /** Extra credit wording for a modified body, e.g. the female proportions. */
+  note?: string;
 }
 
 /** What the pointer is over on the model. The tooltip tracks the pointer position itself. */
@@ -48,6 +52,7 @@ interface ViewerState {
   layerMode: LayerMode;
   depth: Depth;
   quality: Quality;
+  body: BodyType;
   /** Requested camera preset; `nonce` re-triggers the same preset. */
   view: { preset: ViewPreset; nonce: number };
   hover: Hover;
@@ -68,6 +73,7 @@ interface ViewerState {
   setLayerMode: (m: LayerMode) => void;
   setDepth: (d: Depth) => void;
   setQuality: (q: Quality) => void;
+  setBody: (b: BodyType) => void;
   goTo: (preset: ViewPreset) => void;
   setHover: (h: Hover) => void;
   setPreview: (id: MuscleId | null) => void;
@@ -90,6 +96,7 @@ export const useViewer = create<ViewerState>()(
       layerMode: 'full',
       depth: 0,
       quality: prefersLow() ? 'low' : 'high',
+      body: 'male',
       view: { preset: 'front', nonce: 0 },
       hover: null,
       preview: null,
@@ -102,6 +109,7 @@ export const useViewer = create<ViewerState>()(
       setLayerMode: (layerMode) => set({ layerMode }),
       setDepth: (depth) => set({ depth }),
       setQuality: (quality) => set({ quality }),
+      setBody: (body) => set({ body }),
       goTo: (preset) => set((s) => ({ view: { preset, nonce: s.view.nonce + 1 } })),
       setHover: (hover) => set({ hover }),
       setPreview: (preview) => set({ preview }),
@@ -119,7 +127,7 @@ export const useViewer = create<ViewerState>()(
     {
       name: 'hwm.viewer',
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ quality: s.quality }),
+      partialize: (s) => ({ quality: s.quality, body: s.body }),
     },
   ),
 );

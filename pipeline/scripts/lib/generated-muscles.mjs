@@ -10,22 +10,8 @@
  *
  * App space: metres, +Y up, +Z anterior, +X is the subject's left.
  */
-import { centroid, extreme, trim } from './geometry.mjs';
+import { add, centroid, cross, dot, extreme, lerp, mul, norm, SIDES, sub, trim } from './geometry.mjs';
 
-const SIDES = [
-  { side: 'left', s: 1 },
-  { side: 'right', s: -1 },
-];
-
-/* ---------------- small vector helpers ---------------- */
-const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a) => Math.hypot(a[0], a[1], a[2]);
-const norm = (a) => mul(a, 1 / (len(a) || 1));
-const lerp = (a, b, t) => add(a, mul(sub(b, a), t));
 const smooth = (t) => t * t * (3 - 2 * t);
 const clamp01 = (t) => Math.min(1, Math.max(0, t));
 

@@ -7,7 +7,7 @@ import { EXERCISE_BY_ID, exercisePath } from '../data/exercises';
 import type { MuscleId } from '../data/schema';
 import { involvementFor } from '../lib/involvement';
 import { computeSlotState } from '../lib/slotState';
-import { useViewer, type Hover, type ModelMeta, type Quality } from '../state/viewer';
+import { useViewer, type Hover, type ModelMeta, type Quality, type BodyType } from '../state/viewer';
 import {
   createBoneMaterial,
   createBonePickMaterial,
@@ -17,7 +17,8 @@ import {
   decodePick,
 } from './materials';
 
-const modelUrl = (quality: Quality) => `/models/body-${quality}.glb`;
+/** The male body keeps the original file names; other bodies add their name. */
+const modelUrl = (quality: Quality, body: BodyType) => `/models/body-${body === 'male' ? '' : `${body}-`}${quality}.glb`;
 
 /** World-space bounding sphere per muscle id, both sides together. */
 function muscleSpheres(mesh: Mesh, meta: ModelMeta) {
@@ -95,7 +96,8 @@ const hoverKey = (h: Hover) => (h === null ? '' : h.kind === 'muscle' ? `m${h.sl
 
 export function Body() {
   const quality = useViewer((s) => s.quality);
-  const gltf = useGLTF(modelUrl(quality)) as Gltf;
+  const body = useViewer((s) => s.body);
+  const gltf = useGLTF(modelUrl(quality, body)) as Gltf;
   const navigate = useNavigate();
   const gl = useThree((s) => s.gl);
   const get = useThree((s) => s.get);

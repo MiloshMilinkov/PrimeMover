@@ -30,7 +30,7 @@ It also suits physio and sports-science students, coaches writing programmes, an
 ## What's inside
 
 - **128 exercises**: strength, bodyweight, core, Olympic lifts, kettlebell, plyometrics and stretches.
-- **86 muscles** on a full skeleton, built from the BodyParts3D anatomy database.
+- **86 muscles** on a full skeleton, built from the BodyParts3D anatomy database, with a **male and a female body** to switch between. The female body is the same anatomy reshaped to typical female proportions (wider pelvis, narrower shoulders, shorter stature), since no open female model with individual muscles exists.
 - **Four roles**: prime mover, synergist, stabilizer and lengthening under load. Each has its own pattern as well as colour, so the roles stay readable for colour-blind viewers.
 - **Three effort tiers** (high, moderate, low) instead of made-up percentages.
 - **Evidence you can check.** Each exercise says how its muscle data is supported: measured with EMG (62 exercises), from related studies (34), or from anatomy (32). It cites the papers, 71 in total, each checked against PubMed or Crossref. See [docs/02-activation-evidence.md](docs/02-activation-evidence.md).
@@ -54,7 +54,7 @@ Educational only, not medical advice.
 
 ## Credits
 
-3D anatomy geometry adapted from **BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International** (https://creativecommons.org/licenses/by/4.0/). Changes: selection of muscles and bones, unit and axis conversion, smoothing, decimation, generated muscles.
+3D anatomy geometry adapted from **BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International** (https://creativecommons.org/licenses/by/4.0/). Changes: selection of muscles and bones, unit and axis conversion, smoothing, decimation, generated muscles, and a landmark warp to typical female proportions for the female body.
 
 ## License
 

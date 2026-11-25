@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from 'react';
 import { Link } from 'react-router';
-import { useViewer } from '../state/viewer';
+import { useViewer, type BodyType } from '../state/viewer';
+import { Segmented } from './Segmented';
 import { VIEWS } from './views';
 
 /** Toggle for the lighter model and lower pixel ratio. */
@@ -19,6 +20,34 @@ export function QualityToggle({ className = '' }: { className?: string }) {
   );
 }
 
+const BODIES: { value: BodyType; label: string }[] = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+];
+
+/**
+ * Male or female body. Wide screens get both options; phones get one button that
+ * shows the current body and switches on tap, to fit beside the views.
+ */
+function BodySwitch() {
+  const body = useViewer((s) => s.body);
+  const setBody = useViewer((s) => s.setBody);
+  const other = BODIES.find((b) => b.value !== body)!.value;
+  return (
+    <>
+      <Segmented label="Body" options={BODIES} value={body} onChange={setBody} className="glass hidden rounded-pill p-1 md:flex [&>button]:!py-1" />
+      <button
+        type="button"
+        onClick={() => setBody(other)}
+        aria-label={`Body: ${body}. Switch to ${other}`}
+        className="pill glass md:hidden"
+      >
+        {BODIES.find((b) => b.value === body)!.label}
+      </button>
+    </>
+  );
+}
+
 /** `children` render under the bar (the mobile legend), inside the space the camera keeps clear. */
 export function TopBar({ ref, children }: { ref?: Ref<HTMLElement>; children?: ReactNode }) {
   const goTo = useViewer((s) => s.goTo);
@@ -32,6 +61,7 @@ export function TopBar({ ref, children }: { ref?: Ref<HTMLElement>; children?: R
       </Link>
 
       <div className="pointer-events-auto flex items-center gap-2">
+        <BodySwitch />
         <nav aria-label="Camera view" className="glass flex items-center gap-0.5 rounded-pill p-1">
           {VIEWS.map((v) => (
             <button

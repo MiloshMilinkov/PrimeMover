@@ -10,6 +10,7 @@ Proprietary, all rights reserved (see `LICENSE`). Not open source.
 - Step 2 (viewer) is built: model, camera presets, studio light, layer and depth toggles, hover and click picking, muscle details, deep links `/muscle/:id`, mobile bottom sheet.
 - Step 3 is built: role highlighting, info panel, search and filters. The library has 128 exercises (62 measured with EMG, 34 from related studies, 32 from anatomy); method and dataset licences in `docs/02-activation-evidence.md`.
 - Step 4 (movement animation) was dropped by the user on 2026-11-25: the static model shows the muscles worked well enough. The model has no rig; do not add one unless asked.
+- Male and female bodies (2026-11-25): the female body is the BodyParts3D male body warped to typical female proportions (no open female model with individual muscles exists). The app and README say "proportions adjusted"; keep that wording honest.
 - Next is step 5.
 
 ## Build order (stop and show the user after each step)
@@ -34,7 +35,7 @@ Check every step in the browser: no console errors, no horizontal scroll, works 
 - `npm run model:map`: rebuilds `pipeline/mesh-map.csv` and `pipeline/mesh-map.md` from the BodyParts3D parts lists
 - `npm run deploy`: `npm run build`, then `wrangler deploy` (Cloudflare Workers static assets from `dist/`, SPA fallback, headers in `public/_headers`). Live at https://prime-mover.milos300399.workers.dev. The old howwemove.milos300399.workers.dev address is a separate redirect Worker in `ops/old-url-redirect/` (`npm run deploy:redirect`). Wrangler is logged in on this machine.
 - Repo: https://github.com/MiloshMilinkov/PrimeMover (public, view-only licence; vulnerability reporting, secret scanning with push protection, Dependabot alerts and a "Protect main" ruleset are on)
-- `npm run model:build`: rebuilds `public/models/body-{high,low}.glb` (about 6 s)
+- `npm run model:build`: rebuilds `public/models/body-{high,low}.glb` (male) and `body-female-{high,low}.glb` (about 12 s)
 
 The model scripts need the BodyParts3D source data in `pipeline/.source/bp3d/` (git-ignored). Download it from https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html: `isa_BP3D_4.0_obj_99.zip`, unzipped into `isa_obj/`, plus `isa_element_parts.txt` and `isa_parts_list_e.txt`. The built GLBs are committed, so the app runs without it.
 
@@ -44,13 +45,13 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 
 ## Layout
 
-- `pipeline/scripts/`: `build-mesh-map.mjs`, `build-model.mjs`, `lib/geometry.mjs` (OBJ, weld, Taubin, simplify, trim, landmarks), `lib/mesh-map.mjs` (CSV reader, also used by tests), `lib/generated-muscles.mjs` (the six muscles BodyParts3D lacks)
+- `pipeline/scripts/`: `build-mesh-map.mjs`, `build-model.mjs` (writes both bodies from one simplification, so they share slots, parts and fibres), `lib/female.mjs` (female proportions: a thin-plate-spline warp from 63 bone landmarks; tune the ratios at the top), `lib/geometry.mjs` (OBJ, weld, Taubin, simplify, trim, landmarks), `lib/mesh-map.mjs` (CSV reader, also used by tests), `lib/generated-muscles.mjs` (the six muscles BodyParts3D lacks)
 - `public/models/`: built GLBs. Muscles mesh attributes: `_slot` (muscle id x side), `_fibre`. Skeleton: `_part`. Scene extras: `howwemove.slots` (`{id, side}`, or `{id: null, side, name, layer}` for unlisted muscles) and `howwemove.parts` (`{name, side}`).
 - `src/data/`: `schema.ts` (types, `MUSCLE_IDS`), `muscles.ts` (registry: function, origin, insertion, layer), `sources.ts` (verified citations), `motions.ts` (motion ids), `exercises/*.ts` (one array per region; `helpers.ts` has `m`, `group`, `ja`, `lift`/`lower`/`hold`, `working`, and shared muscle and joint-action lists such as `VASTI`, `OBLIQUES`, `TRIPLE_EXTENSION`), registered in `exercises/index.ts`
 - `src/three/`: `Scene` (on-demand frameloop), `Body` (materials, translucent pass, GPU picking), `CameraRig`, `camera.ts` (presets, FOV), `materials.ts` (muscle shader, state texture, pick decoding)
 - `src/ui/`: `layout.ts` (`useInsetTracking` measures the panels for camera framing, `useWindowSize`), `breakpoints.ts`
 - `src/lib/slotState.ts`: per-slot RGBA state written to a DataTexture (role, tier, opacity, hover/selected)
-- `src/state/viewer.ts` (Zustand; `quality` persists to localStorage), `tests/`, `docs/`
+- `src/state/viewer.ts` (Zustand; `quality` and `body` (male or female) persist to localStorage), `tests/`, `docs/`
 
 ## Rules
 

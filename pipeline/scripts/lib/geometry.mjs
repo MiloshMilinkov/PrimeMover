@@ -8,6 +8,22 @@
  */
 import { MeshoptSimplifier } from 'meshoptimizer';
 
+/** Body sides with the sign of X on that side (+X is the subject's left). */
+export const SIDES = [
+  { side: 'left', s: 1 },
+  { side: 'right', s: -1 },
+];
+
+/* ---------------- small vector helpers (3-element arrays) ---------------- */
+export const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+export const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+export const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+export const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+export const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+export const len = (a) => Math.hypot(a[0], a[1], a[2]);
+export const norm = (a) => mul(a, 1 / (len(a) || 1));
+export const lerp = (a, b, t) => add(a, mul(sub(b, a), t));
+
 /** Parses a Wavefront OBJ (v + f only; faces are fan-triangulated). */
 export function parseObj(text) {
   const pos = [];
