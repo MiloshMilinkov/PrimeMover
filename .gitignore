@@ -1,0 +1,32 @@
+# dependencies and builds
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+
+# raw source assets (downloaded, licensed separately; rebuilt by the pipeline)
+pipeline/.source/
+pipeline/.cache/
+
+# secrets
+.env*
+!.env.example
+.dev.vars
+*.pem
+*.key
+*.p12
+credentials*.json
+service-account*.json
+
+# tooling
+.wrangler/
+__pycache__/
+.venv/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
