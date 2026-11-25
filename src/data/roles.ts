@@ -6,6 +6,8 @@ export interface RoleStyle {
   code: number;
   label: string;
   shortLabel: string;
+  /** One plain sentence for people new to the terms. */
+  description: string;
   color: string;
   /** Pattern drawn on the model and in the legend, so roles never rely on hue alone. */
   pattern: 'solid' | 'stripes' | 'dots' | 'bands';
@@ -15,10 +17,10 @@ export interface RoleStyle {
 
 /** Role colours and patterns, shared by the muscle shader and the legend. */
 export const ROLES: RoleStyle[] = [
-  { role: 'prime', code: 1, label: 'Prime mover', shortLabel: 'Prime', color: '#e0413a', pattern: 'solid', glow: 0.3 },
-  { role: 'synergist', code: 2, label: 'Synergist', shortLabel: 'Synergist', color: '#f08a2c', pattern: 'stripes', glow: 0.06 },
-  { role: 'stabilizer', code: 3, label: 'Stabilizer', shortLabel: 'Stabilizer', color: '#e9c046', pattern: 'dots', glow: 0.06 },
-  { role: 'lengthening', code: 4, label: 'Lengthening under load', shortLabel: 'Lengthening', color: '#4fa3e0', pattern: 'bands', glow: 0.14 },
+  { role: 'prime', code: 1, label: 'Prime mover', shortLabel: 'Prime', description: 'Does most of the work.', color: '#e0413a', pattern: 'solid', glow: 0.3 },
+  { role: 'synergist', code: 2, label: 'Synergist', shortLabel: 'Synergist', description: 'Helps the prime movers.', color: '#f08a2c', pattern: 'stripes', glow: 0.06 },
+  { role: 'stabilizer', code: 3, label: 'Stabilizer', shortLabel: 'Stabilizer', description: 'Holds joints steady so the movers can work.', color: '#e9c046', pattern: 'dots', glow: 0.06 },
+  { role: 'lengthening', code: 4, label: 'Lengthening under load', shortLabel: 'Lengthening', description: 'Stretches while it works, often a big part of what the exercise trains.', color: '#4fa3e0', pattern: 'bands', glow: 0.14 },
 ];
 
 export const ROLE_BY_NAME = Object.fromEntries(ROLES.map((r) => [r.role, r])) as Record<MuscleRole, RoleStyle>;

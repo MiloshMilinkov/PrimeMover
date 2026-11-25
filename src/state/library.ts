@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { Category } from '../data/schema';
 import { NO_FILTERS, type ExerciseFilters } from '../lib/search';
 
 export type LibraryTab = 'exercises' | 'muscles';
@@ -11,6 +12,8 @@ interface LibraryState {
   setQuery: (query: string) => void;
   setFilter: <K extends keyof ExerciseFilters>(key: K, value: ExerciseFilters[K]) => void;
   clear: () => void;
+  /** Shows every exercise in one category: clears the search and other filters. */
+  browseCategory: (category: Category) => void;
 }
 
 /** Library tab, exercise search and filters; a store so they survive closing the panel. */
@@ -22,4 +25,5 @@ export const useLibrary = create<LibraryState>((set) => ({
   setQuery: (query) => set({ query }),
   setFilter: (key, value) => set((s) => ({ filters: { ...s.filters, [key]: value } })),
   clear: () => set({ query: '', filters: NO_FILTERS }),
+  browseCategory: (category) => set({ tab: 'exercises', query: '', filters: { ...NO_FILTERS, category } }),
 }));

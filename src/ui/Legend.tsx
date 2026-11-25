@@ -6,7 +6,7 @@ export function RoleSwatch({ background, className = '' }: { background: string;
 }
 
 /** Role key for the model: colour, pattern and name together, never colour alone. */
-export function Legend({ className = '' }: { className?: string }) {
+export function Legend({ className = '', compact = false }: { className?: string; compact?: boolean }) {
   return (
     <ul aria-label="Muscle roles" className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ivory/90 ${className}`}>
       {ROLES.map((r) => (
@@ -15,10 +15,13 @@ export function Legend({ className = '' }: { className?: string }) {
           {r.shortLabel}
         </li>
       ))}
-      <li className="flex items-center gap-1.5 text-fog">
-        <RoleSwatch background={NEUTRAL_COLOR} className="opacity-50" />
-        Not used
-      </li>
+      {/* On a phone the see-through grey speaks for itself; keeping the key to one row leaves the head in view. */}
+      {!compact && (
+        <li className="flex items-center gap-1.5 text-fog">
+          <RoleSwatch background={NEUTRAL_COLOR} className="opacity-50" />
+          Not used
+        </li>
+      )}
     </ul>
   );
 }

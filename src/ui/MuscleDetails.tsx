@@ -1,10 +1,14 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { exercisePath } from '../data/exercises';
 import { JOINT_LABEL } from '../data/labels';
 import { MUSCLE_BY_ID } from '../data/muscles';
-import type { JointId, MuscleId, MuscleLayer } from '../data/schema';
+import type { JointId, MuscleId, MuscleLayer, MuscleRole, Tier } from '../data/schema';
+import { NO_FILTERS, searchExercises } from '../lib/search';
 import { capitalise, joinList } from '../lib/text';
 import { useViewer } from '../state/viewer';
 import { bodyHalfWidthPx } from '../three/camera';
+import { Section, TierMeter } from './ExercisePanel';
 import { useWindowSize } from './layout';
 
 const LAYER_LABEL: Record<MuscleLayer, string> = {
@@ -59,7 +63,66 @@ export function MuscleDetails({ id, titleHidden = false }: { id: MuscleId; title
           Close
         </Link>
       </div>
+
+      <ExercisesFor key={id} id={id} />
     </article>
+  );
+}
+
+/** Reverse-lookup groups, in the order they are listed. */
+const USE_GROUPS: { role: MuscleRole; title: string }[] = [
+  { role: 'prime', title: 'Main mover in' },
+  { role: 'synergist', title: 'Helps in' },
+  { role: 'lengthening', title: 'Stretched in' },
+];
+const RANK = (role: MuscleRole, tier: Tier) => USE_GROUPS.findIndex((g) => g.role === role) * 3 + ['high', 'moderate', 'low'].indexOf(tier);
+const SHOWN = 6;
+
+/** Reverse lookup: the exercises where this muscle drives the lift, then the ones where it helps or is stretched. */
+function ExercisesFor({ id }: { id: MuscleId }) {
+  const [all, setAll] = useState(false);
+  // The library's muscle filter is the one definition of "works this muscle" (stabilizers excluded).
+  const uses = useMemo(
+    () =>
+      searchExercises('', { ...NO_FILTERS, muscle: id })
+        .map((e) => ({ e, m: e.muscles.find((x) => x.id === id && x.role !== 'stabilizer')! }))
+        .sort((a, b) => RANK(a.m.role, a.m.tier) - RANK(b.m.role, b.m.tier)),
+    [id],
+  );
+  if (uses.length === 0) return null;
+  const visible = all ? uses : uses.slice(0, SHOWN);
+
+  return (
+    <Section title="Exercises that work it">
+      <div className="flex flex-col gap-3">
+        {USE_GROUPS.map(({ role, title }) => {
+          const list = visible.filter((u) => u.m.role === role);
+          if (list.length === 0) return null;
+          return (
+            <div key={role}>
+              <h4 className="mb-1 text-[12px] text-fog">{title}</h4>
+              <ul className="-mx-2">
+                {list.map(({ e, m }) => (
+                  <li key={e.id}>
+                    <Link to={exercisePath(e.id, id)} className="list-item text-[14px]">
+                      <span className="flex items-center justify-between gap-3">
+                        {e.name}
+                        <TierMeter tier={m.tier} />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+      {uses.length > SHOWN && (
+        <button type="button" onClick={() => setAll((a) => !a)} className="link mt-2 text-[13px] text-fog">
+          {all ? 'Show fewer' : `Show all ${uses.length}`}
+        </button>
+      )}
+    </Section>
   );
 }
 

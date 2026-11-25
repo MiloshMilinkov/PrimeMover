@@ -12,6 +12,7 @@ import { usePreviewProps } from './preview';
 export function MuscleList({ onPick }: { onPick?: () => void }) {
   const [query, setQuery] = useState('');
   const selected = useViewer((s) => s.selected);
+  const goTo = useViewer((s) => s.goTo);
   const preview = usePreviewProps();
 
   const groups = useMemo(() => {
@@ -47,7 +48,10 @@ export function MuscleList({ onPick }: { onPick?: () => void }) {
                 <li key={m.id}>
                   <Link
                     to={`/muscle/${m.id}`}
-                    onClick={onPick}
+                    onClick={() => {
+                      goTo(m.view);
+                      onPick?.();
+                    }}
                     {...preview(m.id)}
                     aria-current={m.id === selected ? 'page' : undefined}
                     className="list-item text-[14px] leading-snug"

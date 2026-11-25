@@ -98,8 +98,8 @@ export const PHASE_KIND_LABEL: Record<PhaseKind, string> = {
 };
 
 /** How the muscle roles of an exercise were established. */
-export const EVIDENCE_LABEL: Record<Evidence, { title: string; detail: string }> = {
-  emg: { title: 'Measured', detail: 'EMG studies recorded these muscles during this exercise.' },
-  related: { title: 'From related studies', detail: 'Based on EMG of close variations or the same movement, plus anatomy.' },
-  anatomy: { title: 'From anatomy', detail: 'No direct EMG found; roles follow from the joint actions and muscle anatomy.' },
+export const EVIDENCE_LABEL: Record<Evidence, { title: string; badge: string; detail: string }> = {
+  emg: { title: 'Measured', badge: 'EMG measured', detail: 'EMG studies recorded these muscles during this exercise.' },
+  related: { title: 'From related studies', badge: 'Related studies', detail: 'Based on EMG of close variations or the same movement, plus anatomy.' },
+  anatomy: { title: 'From anatomy', badge: 'From anatomy', detail: 'No direct EMG found; roles follow from the joint actions and muscle anatomy.' },
 };

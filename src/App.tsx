@@ -1,4 +1,4 @@
-import { Component, useEffect, useState, type ReactNode } from 'react';
+import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useMatch, useNavigate, useSearchParams } from 'react-router';
 import { EXERCISE_BY_ID } from './data/exercises';
 import { MUSCLE_BY_ID } from './data/muscles';
@@ -18,6 +18,7 @@ import { Legend } from './ui/Legend';
 import { Library } from './ui/Library';
 import { QualityToggle, TopBar } from './ui/TopBar';
 import { VIEWS } from './ui/views';
+import { Welcome } from './ui/Welcome';
 
 class ModelErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -58,9 +59,16 @@ function useRouteState() {
     if (invalid) navigate('/', { replace: true });
   }, [invalid, navigate]);
 
+  const onMusclePage = !!muscleMatch;
+  const firstLoad = useRef(true);
   useEffect(() => {
-    useViewer.getState().setSelected(muscle);
-  }, [muscle]);
+    const viewer = useViewer.getState();
+    viewer.setSelected(muscle);
+    // A muscle page opened from a link starts facing the muscle. Later, the muscle list turns the body
+    // (MuscleList); a click on the body does not, since that muscle is already in view.
+    if (firstLoad.current && onMusclePage && muscle) viewer.goTo(MUSCLE_BY_ID[muscle].view);
+    firstLoad.current = false;
+  }, [muscle, onMusclePage]);
 
   useEffect(() => {
     const { setExercise, frameExercise } = useViewer.getState();
@@ -113,6 +121,7 @@ export default function App() {
   ) : muscle ? (
     <MuscleDetails id={muscle} titleHidden={!desktop} />
   ) : null;
+  const rightPanel = detail ?? <Welcome onBrowse={() => setRailOpen(true)} />;
 
   return (
     <div
@@ -125,7 +134,7 @@ export default function App() {
         <Scene />
       </ModelErrorBoundary>
       <TopBar ref={track('top')}>
-        {!desktop && exercise && <Legend className="glass pointer-events-auto rounded-pill px-3 py-1.5" />}
+        {!desktop && exercise && <Legend compact className="glass pointer-events-auto rounded-pill px-3 py-1.5" />}
       </TopBar>
 
       {desktop && !wide && (
@@ -152,14 +161,14 @@ export default function App() {
         </aside>
       )}
 
-      {desktop && detail && (
+      {desktop && (
         <aside
           ref={track('right')}
-          aria-label={exercise ? 'Exercise details' : 'Muscle details'}
+          aria-label={exercise ? 'Exercise details' : muscle ? 'Muscle details' : 'Getting started'}
           className="glass absolute bottom-4 right-6 top-16 z-20 overflow-y-auto p-5"
           style={{ width: PANEL_WIDTH }}
         >
-          {detail}
+          {rightPanel}
         </aside>
       )}
 
@@ -190,9 +199,12 @@ export default function App() {
           }
         >
           {detail ?? (
-            <div className="-mx-4 flex h-[62vh] flex-col">
-              <Library />
-            </div>
+            <>
+              <Welcome compact />
+              <div className="-mx-4 mt-5 flex h-[62vh] flex-col">
+                <Library />
+              </div>
+            </>
           )}
           <QualityToggle className="mt-6" />
           <Footer className="mt-4 border-t border-hairline pt-3" />

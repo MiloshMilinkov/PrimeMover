@@ -6,6 +6,7 @@ import { MUSCLE_BY_ID } from '../data/muscles';
 import { patternCss, ROLE_BY_NAME, TIER_LABEL } from '../data/roles';
 import type { Exercise, MuscleId, MuscleInvolvement, MuscleRole, Tier } from '../data/schema';
 import { SOURCE_BY_ID } from '../data/sources';
+import { areasFor } from '../lib/areas';
 import { capitalise, joinList } from '../lib/text';
 import { useViewer } from '../state/viewer';
 import { RoleSwatch } from './Legend';
@@ -15,7 +16,7 @@ import { usePreviewProps } from './preview';
 const ROLE_ORDER: MuscleRole[] = ['prime', 'lengthening', 'synergist', 'stabilizer'];
 const TIER_BARS: Record<Tier, number> = { high: 3, moderate: 2, low: 1 };
 
-function TierMeter({ tier }: { tier: Tier }) {
+export function TierMeter({ tier }: { tier: Tier }) {
   return (
     <span className="flex items-center gap-1.5 text-[12px] text-fog">
       <span aria-hidden className="flex items-end gap-[2px]">
@@ -28,9 +29,10 @@ function TierMeter({ tier }: { tier: Tier }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** A titled panel section; `divided` draws the hairline above it. */
+export function Section({ title, id, divided = true, children }: { title: string; id?: string; divided?: boolean; children: ReactNode }) {
   return (
-    <section className="border-t border-hairline pt-4">
+    <section id={id} className={`scroll-mt-4 ${divided ? 'border-t border-hairline pt-4' : ''}`}>
       <h3 className="mb-2 text-[13px] font-semibold text-ivory">{title}</h3>
       {children}
     </section>
@@ -69,6 +71,17 @@ function MuscleRow({ exerciseId, m, focused }: { exerciseId: string; m: MuscleIn
   );
 }
 
+/** "Mainly works the quads and glutes, with help from the hamstrings. Stretches the hip flexors." */
+function summary(e: Exercise) {
+  const prime = areasFor(e, 'prime');
+  const helpers = areasFor(e, 'synergist').filter((a) => !prime.includes(a));
+  const stretched = areasFor(e, 'lengthening').filter((a) => !prime.includes(a));
+  const works = prime.length ? `Mainly works the ${joinList(prime)}${helpers.length ? `, with help from the ${joinList(helpers)}` : ''}.` : '';
+  const loaded = prime.length > 0 && e.movementPattern !== 'stretch';
+  const stretches = stretched.length ? `Stretches the ${joinList(stretched)}${loaded ? ' under load' : ''}.` : '';
+  return [works, stretches].filter(Boolean).join(' ');
+}
+
 /** Everything about one exercise: how it moves, which muscles work and how hard, and how to do it well. */
 export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exercise: Exercise; focus: MuscleId | null; titleHidden?: boolean }) {
   const frameExercise = useViewer((s) => s.frameExercise);
@@ -83,11 +96,22 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
               {t}
             </li>
           ))}
+          <li>
+            <button
+              type="button"
+              onClick={() => document.getElementById('evidence')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              aria-label={`Evidence: ${EVIDENCE_LABEL[e.evidence].title}. Jump to sources`}
+              className="block rounded-full bg-hairline px-2 py-0.5 text-ivory/85 hover:text-ivory"
+            >
+              {EVIDENCE_LABEL[e.evidence].badge}
+            </button>
+          </li>
         </ul>
         <h2 id="exercise-title" className={titleHidden ? 'sr-only' : 'text-[22px] font-semibold leading-tight tracking-[-0.01em]'}>
           {e.name}
         </h2>
         {e.aliases.length > 0 && <p className="mt-1 text-[13px] text-fog">Also called {joinList(e.aliases)}.</p>}
+        <p className="mt-3 text-[15px] leading-snug text-ivory/90">{summary(e)}</p>
         <button type="button" onClick={() => frameExercise(e)} className="btn-secondary mt-3">
           Frame working muscles
         </button>
@@ -178,7 +202,7 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
         </Section>
       )}
 
-      <Section title="Evidence and sources">
+      <Section title="Evidence and sources" id="evidence">
         <p className="mb-2 text-[13px] leading-snug text-ivory/80">
           <span className="font-semibold text-ivory">{EVIDENCE_LABEL[e.evidence].title}.</span> {EVIDENCE_LABEL[e.evidence].detail}
         </p>
