@@ -7,11 +7,15 @@ An interactive 3D exercise anatomy explorer. Pick an exercise, and a realistic h
 
 Educational only, not medical advice.
 
+Live: https://howwemove.milos300399.workers.dev
+
 ## Development
 
 ```sh
 npm install
-npm run dev
+npm run dev      # Vite dev server on http://localhost:5173
+npm test         # Vitest
+npm run deploy   # build, then deploy to Cloudflare Workers (static assets)
 ```
 
 The 3D model is built from BodyParts3D source data by the scripts in `pipeline/` (see `CLAUDE.md`).

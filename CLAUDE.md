@@ -31,6 +31,8 @@ Check every step in the browser: no console errors, no horizontal scroll, works 
 - `npm test`: Vitest (`tests/**/*.test.ts`)
 - `npm run lint`: ESLint
 - `npm run model:map`: rebuilds `pipeline/mesh-map.csv` and `pipeline/mesh-map.md` from the BodyParts3D parts lists
+- `npm run deploy`: `npm run build`, then `wrangler deploy` (Cloudflare Workers static assets from `dist/`, SPA fallback, headers in `public/_headers`). Live at https://howwemove.milos300399.workers.dev. Wrangler is logged in on this machine.
+- Repo: https://github.com/MiloshMilinkov/HowWeMove (public, view-only licence; vulnerability reporting, secret scanning with push protection, Dependabot alerts and a "Protect main" ruleset are on)
 - `npm run model:build`: rebuilds `public/models/body-{high,low}.glb` (about 6 s)
 
 The model scripts need the BodyParts3D source data in `pipeline/.source/bp3d/` (git-ignored). Download it from https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html: `isa_BP3D_4.0_obj_99.zip`, unzipped into `isa_obj/`, plus `isa_element_parts.txt` and `isa_parts_list_e.txt`. The built GLBs are committed, so the app runs without it.
