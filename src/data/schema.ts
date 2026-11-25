@@ -320,7 +320,16 @@ export type MovementPattern =
   | 'ankle'
   | 'jump'
   | 'olympic'
+  | 'anti-lateral-flexion'
+  | 'wrist'
   | 'stretch';
+
+/**
+ * - 'emg': studies measured these muscles during this exercise
+ * - 'related': EMG on close variants or the same pattern, plus anatomy
+ * - 'anatomy': derived from joint actions and muscle anatomy only
+ */
+export type Evidence = 'emg' | 'related' | 'anatomy';
 
 export interface Variation {
   /** Link to another library entry when one exists. */
@@ -359,6 +368,8 @@ export interface Exercise {
     props?: Equipment[];
   };
   camera?: { preset?: 'front' | 'back' | 'side'; focus?: MuscleId[] };
+  /** How directly the muscle data is supported; shown in the panel. */
+  evidence: Evidence;
   sourceIds: SourceId[];
   notes?: string;
   /** 'draft' entries are hidden in production builds until reviewed. */

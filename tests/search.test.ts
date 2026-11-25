@@ -28,11 +28,15 @@ describe('searchExercises', () => {
   });
 
   it('applies filters with and without a query', () => {
-    expect(ids('', { ...NO_FILTERS, equipment: 'kettlebell' })).toEqual(['kettlebell-swing']);
+    const kettlebell = searchExercises('', { ...NO_FILTERS, equipment: 'kettlebell' });
+    expect(kettlebell.map((e) => e.id)).toEqual(expect.arrayContaining(['kettlebell-swing', 'kettlebell-snatch', 'turkish-get-up']));
+    expect(kettlebell.every((e) => e.equipment.includes('kettlebell'))).toBe(true);
     expect(ids('', { ...NO_FILTERS, muscle: 'latissimus-dorsi' })).toEqual(expect.arrayContaining(['pull-up', 'lat-pulldown', 'barbell-bent-over-row']));
     expect(ids('', { ...NO_FILTERS, muscle: 'latissimus-dorsi' })).not.toContain('barbell-back-squat');
     expect(ids('', { ...NO_FILTERS, category: 'calisthenics' })).toEqual(expect.arrayContaining(['push-up', 'pull-up']));
-    expect(ids('squat', { ...NO_FILTERS, difficulty: 'advanced' })).toEqual(['barbell-front-squat']);
+    const advanced = searchExercises('squat', { ...NO_FILTERS, difficulty: 'advanced' });
+    expect(advanced.map((e) => e.id)).toContain('barbell-front-squat');
+    expect(advanced.every((e) => e.difficulty === 'advanced')).toBe(true);
   });
 
   it('returns everything for an empty query', () => {
@@ -41,7 +45,12 @@ describe('searchExercises', () => {
 });
 
 describe('search precision', () => {
-  it.each(['RDL', 'OHP', 'curl', 'squat'])('keeps %s to a short, relevant list', (query) => {
-    expect(ids(query).length).toBeLessThanOrEqual(8);
+  const named = (e: { name: string; aliases: string[] }, word: string) =>
+    [e.name, ...e.aliases].some((n) => n.toLowerCase().includes(word.toLowerCase()));
+
+  it.each(['RDL', 'OHP', 'curl', 'squat', 'row', 'press'])('only returns exercises named or aliased %s', (query) => {
+    const hits = searchExercises(query);
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits.filter((e) => !named(e, query)).map((e) => e.id)).toEqual([]);
   });
 });

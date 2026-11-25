@@ -1,5 +1,5 @@
 import type { Exercise } from '../schema';
-import { ERECTORS, GASTROC, GRIP, HAMSTRINGS_HIP, VASTI, group, ja, m } from './helpers';
+import { ERECTORS, GASTROC, GRIP, HAMSTRINGS_HIP, OBLIQUES, VASTI, group, ja, m } from './helpers';
 
 const squatDown = [ja('hip', 'flexion'), ja('knee', 'flexion'), ja('ankle', 'dorsiflexion'), ja('lumbar-spine', 'isometric-hold')];
 const squatUp = [ja('hip', 'extension'), ja('knee', 'extension'), ja('ankle', 'plantarflexion'), ja('lumbar-spine', 'isometric-hold')];
@@ -54,6 +54,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'squat', params: { depth: 0.95, bar: 'high' }, props: ['barbell'] },
     camera: { preset: 'side' },
+    evidence: 'emg',
     sourceIds: ['escamilla-2001-squat', 'schoenfeld-2010-squat', 'contreras-2015-hip-thrust', 'kubo-2019-squat-depth'],
     status: 'reviewed',
   },
@@ -74,8 +75,8 @@ export const LEGS: Exercise[] = [
     muscles: [
       ...group(VASTI, 'prime', 'high', 'Extends the knee; the upright torso keeps the knees travelling forward.'),
       m('gluteus-maximus', 'prime', 'moderate', 'Extends the hip; slightly less hip demand than the back squat.', {
-        notes: 'Gullett 2009 found similar muscle activity in front and back squats, with lower knee compressive forces in the front squat.',
-        sourceIds: ['gullett-2009-front-back-squat'],
+        notes: 'Gullett 2009 found similar muscle activity in front and back squats, with lower knee compressive forces in the front squat. Contreras 2016 found no differences in gluteus maximus, biceps femoris or vastus lateralis EMG between front, parallel and full squats.',
+        sourceIds: ['gullett-2009-front-back-squat', 'contreras-2016-squat-depth'],
       }),
       m('adductor-magnus', 'synergist', 'moderate', 'Assists hip extension near the bottom.'),
       m('rectus-femoris', 'synergist', 'moderate', 'Helps extend the knee while also crossing the hip.'),
@@ -96,7 +97,8 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'front-squat', params: { depth: 0.95 }, props: ['barbell'] },
     camera: { preset: 'side' },
-    sourceIds: ['gullett-2009-front-back-squat', 'yavuz-2015-front-back-squat', 'escamilla-2001-squat'],
+    evidence: 'emg',
+    sourceIds: ['gullett-2009-front-back-squat', 'yavuz-2015-front-back-squat', 'escamilla-2001-squat', 'contreras-2016-squat-depth'],
     status: 'reviewed',
   },
   {
@@ -137,6 +139,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'hinge', params: { knee: 0.15 }, props: ['barbell'] },
     camera: { preset: 'side' },
+    evidence: 'emg',
     sourceIds: ['mcallister-2014-hamstrings', 'schoenfeld-2015-hamstrings'],
     status: 'reviewed',
   },
@@ -183,6 +186,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'deadlift', props: ['barbell'] },
     camera: { preset: 'side' },
+    evidence: 'emg',
     sourceIds: ['escamilla-2002-deadlift', 'mcallister-2014-hamstrings'],
     status: 'reviewed',
   },
@@ -212,7 +216,7 @@ export const LEGS: Exercise[] = [
       m('gluteus-medius', 'stabilizer', 'high', 'Front leg: keeps the pelvis level on one leg.', { side: 'working', sourceIds: ['mccurdy-2010-single-leg-squat'] }),
       m('rectus-femoris', 'lengthening', 'low', 'Rear leg: stretched across the front of the hip as you sink.', { side: 'non-working' }),
       m('iliacus', 'lengthening', 'low', 'Rear leg: the hip flexors stretch in the bottom position.', { side: 'non-working' }),
-      ...group(['external-oblique', 'internal-oblique'], 'stabilizer', 'moderate', 'Keeps the trunk square over one leg.'),
+      ...group(OBLIQUES, 'stabilizer', 'moderate', 'Keeps the trunk square over one leg.'),
       m('quadratus-lumborum', 'stabilizer', 'low', 'Stops the pelvis dropping to one side.'),
       m('soleus', 'stabilizer', 'low', 'Front leg: balances the shin over the foot.', { side: 'working' }),
     ],
@@ -227,6 +231,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'split-squat', props: ['dumbbell', 'bench'] },
     camera: { preset: 'side' },
+    evidence: 'emg',
     sourceIds: ['mccurdy-2010-single-leg-squat', 'andersen-2014-bulgarian-squat'],
     status: 'reviewed',
   },
@@ -263,6 +268,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'leg-press', props: ['machine'] },
     camera: { preset: 'side' },
+    evidence: 'emg',
     sourceIds: ['dasilva-2008-leg-press', 'escamilla-1998-knee'],
     status: 'reviewed',
   },
@@ -294,6 +300,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'knee-extension', props: ['machine'] },
     camera: { preset: 'side' },
+    evidence: 'related',
     sourceIds: ['ema-2013-quadriceps', 'escamilla-1998-knee'],
     status: 'reviewed',
   },
@@ -332,6 +339,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'prone-knee-flexion', props: ['machine'] },
     camera: { preset: 'back' },
+    evidence: 'emg',
     sourceIds: ['schoenfeld-2015-hamstrings', 'maeo-2021-leg-curl'],
     status: 'reviewed',
   },
@@ -363,6 +371,7 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'calf-raise' },
     camera: { preset: 'back' },
+    evidence: 'emg',
     sourceIds: ['signorile-2002-calf'],
     status: 'reviewed',
   },
@@ -383,8 +392,8 @@ export const LEGS: Exercise[] = [
     ],
     muscles: [
       m('gluteus-maximus', 'prime', 'high', 'Extends the hip; hardest at the top, where the glutes are short.', {
-        notes: 'Contreras 2015 found higher gluteus maximus EMG in the hip thrust than in the back squat.',
-        sourceIds: ['contreras-2015-hip-thrust', 'mccurdy-2018-glutes'],
+        notes: 'Contreras 2015 found higher gluteus maximus EMG in the hip thrust than in the back squat. Krause Neto 2025 pooled training studies and recommends it when the glutes are the priority.',
+        sourceIds: ['contreras-2015-hip-thrust', 'mccurdy-2018-glutes', 'krause-neto-2025-glute'],
       }),
       ...group(['biceps-femoris-long', 'semitendinosus'], 'synergist', 'moderate', 'Assist hip extension; the bent knee keeps them from taking over.', { sourceIds: ['contreras-2015-hip-thrust'] }),
       m('adductor-magnus', 'synergist', 'moderate', 'Assists hip extension.'),
@@ -405,7 +414,8 @@ export const LEGS: Exercise[] = [
     ],
     animation: { motionId: 'hip-thrust', props: ['barbell', 'bench'] },
     camera: { preset: 'side' },
-    sourceIds: ['contreras-2015-hip-thrust', 'mccurdy-2018-glutes'],
+    evidence: 'emg',
+    sourceIds: ['contreras-2015-hip-thrust', 'mccurdy-2018-glutes', 'krause-neto-2025-glute'],
     status: 'reviewed',
   },
 ];

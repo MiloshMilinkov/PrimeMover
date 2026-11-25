@@ -8,7 +8,8 @@ Proprietary, all rights reserved (see `LICENSE`). Not open source.
 
 - Step 1 (research, architecture, schema) is done: `docs/01-research-and-plan.md`. The user chose asset option A (BodyParts3D, CC BY 4.0) with a skinned rig.
 - Step 2 (viewer) is built: model, camera presets, studio light, layer and depth toggles, hover and click picking, muscle details, deep links `/muscle/:id`, mobile bottom sheet.
-- Next is step 3 (30 researched exercises, role highlighting, info panel, search and filters).
+- Step 3 is built: role highlighting, info panel, search and filters. The library has 128 exercises (62 measured with EMG, 34 from related studies, 32 from anatomy); method and dataset licences in `docs/02-activation-evidence.md`.
+- Next is step 4 (movement animation).
 
 ## Build order (stop and show the user after each step)
 
@@ -42,7 +43,7 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 
 - `pipeline/scripts/`: `build-mesh-map.mjs`, `build-model.mjs`, `lib/geometry.mjs` (OBJ, weld, Taubin, simplify, trim, landmarks), `lib/mesh-map.mjs` (CSV reader, also used by tests), `lib/generated-muscles.mjs` (the six muscles BodyParts3D lacks)
 - `public/models/`: built GLBs. Muscles mesh attributes: `_slot` (muscle id x side), `_fibre`. Skeleton: `_part`. Scene extras: `howwemove.slots` (`{id, side}`, or `{id: null, side, name, layer}` for unlisted muscles) and `howwemove.parts` (`{name, side}`).
-- `src/data/`: `schema.ts` (types, `MUSCLE_IDS`), `muscles.ts` (registry: function, origin, insertion, layer)
+- `src/data/`: `schema.ts` (types, `MUSCLE_IDS`), `muscles.ts` (registry: function, origin, insertion, layer), `sources.ts` (verified citations), `motions.ts` (motion ids), `exercises/*.ts` (one array per region; `helpers.ts` has `m`, `group`, `ja`, `lift`/`lower`/`hold`, `working`, and shared muscle and joint-action lists such as `VASTI`, `OBLIQUES`, `TRIPLE_EXTENSION`), registered in `exercises/index.ts`
 - `src/three/`: `Scene` (on-demand frameloop), `Body` (materials, translucent pass, GPU picking), `CameraRig`, `camera.ts` (presets, FOV), `materials.ts` (muscle shader, state texture, pick decoding)
 - `src/ui/`: `layout.ts` (`useInsetTracking` measures the panels for camera framing, `useWindowSize`), `breakpoints.ts`
 - `src/lib/slotState.ts`: per-slot RGBA state written to a DataTexture (role, tier, opacity, hover/selected)
@@ -52,6 +53,8 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 
 - Exercises are data, not code. Each one is typed against `src/data/schema.ts`.
 - Activation is expressed as tiers (high/moderate/low) from kinesiology and EMG consensus. Never use made-up percentages. Put disagreements in `notes` and cite `sourceIds`.
+- Every exercise sets `evidence` (`emg`, `related` or `anatomy`) honestly. Check a claim against the abstract (PubMed eutils) before citing it; every source must be cited at least once (tested).
+- Optional cross-check: `FREE_EXERCISE_DB=path/to/exercises.json npx vitest run tests/crosscheck.test.ts` (free-exercise-db, never shipped). New flags get fixed or added to `ACCEPTED` with a reason.
 - Muscle ids are side-less. `side` on an involvement is relative to the working limb.
 - Role colours never rely on hue alone: use pattern, intensity and labels, and always show the legend.
 - The UI is monochrome ivory on slate; colour is reserved for muscle-role data. Latin names are set in Newsreader italic; everything else in Schibsted Grotesk.
@@ -69,3 +72,4 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 - BodyParts3D has no latissimus dorsi, rectus abdominis, internal oblique, transversus abdominis, quadratus lumborum or multifidus. They are generated from bone landmarks. The external oblique's aponeurosis is trimmed over the rectus.
 - BodyParts3D OBJ headers still carry the old CC BY-SA 2.1 JP text. The licence page (2025-02-27) says CC BY 4.0.
 - Muscle parts such as the trapezius parts sit only under the generic "organ zone" concept, so the mesh map trusts its explicit name list.
+- Vitest still runs the body of a `describe.skipIf(...)` block to collect its tests, so guard any file reads inside it (see `tests/crosscheck.test.ts`).

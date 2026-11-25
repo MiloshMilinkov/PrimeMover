@@ -2,10 +2,26 @@ import type { Category, Exercise, MuscleId } from '../schema';
 import { BACK } from './back';
 import { CHEST } from './chest';
 import { LEGS } from './legs';
+import { LOWER_BODY } from './lower-body';
+import { MOBILITY } from './mobility';
+import { POWER } from './power';
+import { TRUNK } from './trunk';
+import { UPPER_BODY } from './upper-body';
 import { CORE, UPPER } from './upper';
 
 /** All exercises shown in the library ('draft' entries are hidden in production). */
-export const EXERCISES: Exercise[] = [...LEGS, ...CHEST, ...BACK, ...UPPER, ...CORE].filter(
+export const EXERCISES: Exercise[] = [
+  ...LEGS,
+  ...LOWER_BODY,
+  ...CHEST,
+  ...BACK,
+  ...UPPER,
+  ...UPPER_BODY,
+  ...CORE,
+  ...TRUNK,
+  ...POWER,
+  ...MOBILITY,
+].filter(
   (e) => e.status === 'reviewed' || import.meta.env.DEV,
 );
 

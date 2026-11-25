@@ -3,8 +3,8 @@ import { EXERCISES, EXERCISE_BY_ID } from '../src/data/exercises';
 import { SOURCE_BY_ID, SOURCES } from '../src/data/sources';
 
 describe('exercise library', () => {
-  it('has at least 30 exercises with unique kebab-case ids', () => {
-    expect(EXERCISES.length).toBeGreaterThanOrEqual(30);
+  it('has at least 100 exercises with unique kebab-case ids', () => {
+    expect(EXERCISES.length).toBeGreaterThanOrEqual(100);
     const ids = EXERCISES.map((e) => e.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);

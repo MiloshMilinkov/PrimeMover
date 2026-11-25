@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { exercisePath } from '../data/exercises';
-import { CATEGORY_LABEL, DIFFICULTY_LABEL, EQUIPMENT_LABEL, jointActionText, PHASE_KIND_LABEL, SIDE_LABEL } from '../data/labels';
+import { CATEGORY_LABEL, DIFFICULTY_LABEL, EQUIPMENT_LABEL, EVIDENCE_LABEL, jointActionText, PHASE_KIND_LABEL, SIDE_LABEL } from '../data/labels';
 import { MUSCLE_BY_ID } from '../data/muscles';
 import { patternCss, ROLE_BY_NAME, TIER_LABEL } from '../data/roles';
 import type { Exercise, MuscleId, MuscleInvolvement, MuscleRole, Tier } from '../data/schema';
@@ -78,7 +78,7 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
     <article aria-labelledby="exercise-title" className="flex flex-col gap-4">
       <header>
         <ul className="mb-2 flex flex-wrap gap-1.5 text-[12px] text-fog">
-          {[CATEGORY_LABEL[e.category], DIFFICULTY_LABEL[e.difficulty], ...e.equipment.map((q) => EQUIPMENT_LABEL[q])].map((t) => (
+          {[...new Set([CATEGORY_LABEL[e.category], DIFFICULTY_LABEL[e.difficulty], ...e.equipment.map((q) => EQUIPMENT_LABEL[q])])].map((t) => (
             <li key={t} className="rounded-full border border-hairline px-2 py-0.5">
               {t}
             </li>
@@ -178,16 +178,20 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
         </Section>
       )}
 
-      <Section title="Sources">
+      <Section title="Evidence and sources">
+        <p className="mb-2 text-[13px] leading-snug text-ivory/80">
+          <span className="font-semibold text-ivory">{EVIDENCE_LABEL[e.evidence].title}.</span> {EVIDENCE_LABEL[e.evidence].detail}
+        </p>
         <ol className="list-decimal space-y-1.5 pl-5 text-[12px] leading-snug text-fog">
           {e.sourceIds.map((sid) => {
             const s = SOURCE_BY_ID[sid];
+            const href = s.doi ? `https://doi.org/${s.doi}` : s.url;
             return (
               <li key={sid}>
                 {s.citation}{' '}
-                {s.doi && (
-                  <a href={`https://doi.org/${s.doi}`} target="_blank" rel="noreferrer" className="link">
-                    doi:{s.doi}
+                {href && (
+                  <a href={href} target="_blank" rel="noreferrer" className="link">
+                    {s.doi ? `doi:${s.doi}` : 'link'}
                   </a>
                 )}
               </li>
