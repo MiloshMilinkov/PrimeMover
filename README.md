@@ -3,11 +3,40 @@
 > **⚠️ View only — not open source.**
 > This code is public for viewing only. Copying, modifying, deploying, redistributing or reusing any part of it (code, design, texts or branding), or using it to train AI models, is not allowed without written permission. See [LICENSE](LICENSE).
 
-An interactive 3D exercise anatomy explorer. Pick an exercise, and a realistic human model (skeleton plus individual muscles) shows which muscles work, how hard and how, phase by phase.
+**See which muscles an exercise works, on a real 3D body.** Pick an exercise and the model lights up the muscles doing the work, colour-coded by role and ranked by how hard they work, with the research behind it.
 
-Educational only, not medical advice.
+**Live:** https://howwemove.milos300399.workers.dev
 
-Live: https://howwemove.milos300399.workers.dev
+![Barbell bench press: chest highlighted as the prime mover, front delts and triceps as synergists, with the muscle list on the right](docs/screenshots/exercise-bench-press.png)
+
+## Made for trainers and their clients
+
+HowWeMove is built to be shown, not just read. A personal trainer can pull it up on a phone, tablet or gym screen and answer "what is this actually working?" in seconds.
+
+- **Explain an exercise.** Open it and the body shows the prime movers, the helpers, the muscles holding you steady and the ones being stretched. Every exercise lists the movement step by step, coaching cues, common mistakes with fixes, and variations.
+- **Show why technique matters.** Notes explain what changes with grip, depth or stance. For example, the hamstrings lengthen under load in a Romanian deadlift, and a decline press shifts work to the lower chest.
+- **Answer "what works my glutes?"** Filter by muscle, equipment, category or difficulty, or search by name, nickname or muscle ("RDL", "skull crusher", "latissimus"). Type "pull-up vs chin-up" to put both at the top of the results.
+- **Share it.** Every exercise and muscle has its own link, so a trainer can send a client straight to their glute bridge or their rotator cuff.
+- **Learn the anatomy.** Click any muscle for what it does, where it attaches and which joints it crosses. Peel away layers, switch to x-ray, or look from the front, back or side.
+
+It also suits physio and sports-science students, coaches writing programmes, and anyone curious about how their body moves.
+
+| Pull-up, from behind | Romanian deadlift, from the side | On a phone |
+|---|---|---|
+| ![Pull-up: lats as prime movers, back and arm muscles as synergists](docs/screenshots/exercise-pull-up.png) | ![Romanian deadlift: glutes working, hamstrings lengthening under load](docs/screenshots/exercise-rdl.png) | ![Hip thrust on a 375px phone screen with the info sheet open](docs/screenshots/mobile-hip-thrust.jpg) |
+
+## What's inside
+
+- **128 exercises**: strength, bodyweight, core, Olympic lifts, kettlebell, plyometrics and stretches.
+- **86 muscles** on a full skeleton, built from the BodyParts3D anatomy database.
+- **Four roles**: prime mover, synergist, stabilizer and lengthening under load. Each has its own pattern as well as colour, so the roles stay readable for colour-blind viewers.
+- **Three effort tiers** (high, moderate, low) instead of made-up percentages.
+- **Evidence you can check.** Each exercise says how its muscle data is supported: measured with EMG (62 exercises), from related studies (34), or from anatomy (32). It cites the papers, 71 in total, each checked against PubMed or Crossref. See [docs/02-activation-evidence.md](docs/02-activation-evidence.md).
+
+## Coming next
+
+- Movement animation: the body performs each rep, and muscles light up phase by phase.
+- 150+ exercises, "which exercises work this muscle" lookup, side-by-side compare and a workout builder.
 
 ## Development
 
@@ -18,7 +47,9 @@ npm test         # Vitest
 npm run deploy   # build, then deploy to Cloudflare Workers (static assets)
 ```
 
-The 3D model is built from BodyParts3D source data by the scripts in `pipeline/` (see `CLAUDE.md`).
+Built with React, TypeScript, three.js (React Three Fiber), Zustand and Tailwind. The 3D model is built from BodyParts3D source data by the scripts in `pipeline/` (see `CLAUDE.md`).
+
+Educational only, not medical advice.
 
 ## Credits
 
