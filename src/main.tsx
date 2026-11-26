@@ -8,12 +8,19 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import App from './App';
+import { loadLanguage } from './i18n';
+import { useSettings } from './state/settings';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>,
-);
+// A saved non-English language is loaded before the first render, so no English flashes first.
+loadLanguage(useSettings.getState().lang)
+  .catch(() => useSettings.getState().setLang('en'))
+  .finally(() =>
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </StrictMode>,
+    ),
+  );

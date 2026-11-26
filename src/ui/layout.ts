@@ -3,7 +3,10 @@ import { useViewer } from '../state/viewer';
 
 export const RAIL_WIDTH = 300;
 export const PANEL_WIDTH = 380;
-export const SHEET_PEEK = 132;
+/** Lowest mobile-sheet height while browsing: tabs, search and the result count stay visible. */
+export const SHEET_PEEK_BROWSE = 156;
+/** Lowest mobile-sheet height on an exercise or muscle: the back button and the name. */
+export const SHEET_PEEK_DETAIL = 84;
 
 export function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);

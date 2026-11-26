@@ -18,8 +18,9 @@ Prime Mover is built to be shown, not just read. A personal trainer can pull it 
 - **Explain an exercise.** Open it and the body shows the prime movers, the helpers, the muscles holding you steady and the ones being stretched. Every exercise lists the movement step by step, coaching cues, common mistakes with fixes, and variations.
 - **Show why technique matters.** Notes explain what changes with grip, depth or stance. For example, the hamstrings lengthen under load in a Romanian deadlift, and a decline press shifts work to the lower chest.
 - **Answer "what works my glutes?"** Filter by muscle, equipment, category or difficulty, or search by name, nickname or muscle ("RDL", "skull crusher", "latissimus"). Type "pull-up vs chin-up" to put both at the top of the results.
+- **Use it on a phone.** The list sits in a sheet you pull up from the bottom, the body stays in view above it, and a tap on any muscle opens its details.
 - **Share it.** Every exercise and muscle has its own link, so a trainer can send a client straight to their glute bridge or their rotator cuff.
-- **Learn the anatomy.** Click any muscle for what it does, where it attaches, which joints it crosses and which exercises work it. Peel away layers, switch to x-ray, or look from the front, back or side.
+- **Learn the anatomy.** Click or tap any muscle for what it does, where it attaches, which joints it crosses and which exercises work it. Peel away layers, switch to x-ray, or look from the front, back or side.
 
 It also suits physio and sports-science students, coaches writing programmes, and anyone curious about how their body moves.
 
@@ -33,6 +34,8 @@ It also suits physio and sports-science students, coaches writing programmes, an
 - **86 muscles** on a full skeleton, built from the BodyParts3D anatomy database, with a **male and a female body** to switch between. The female body is the same anatomy reshaped to typical female proportions (wider pelvis, narrower shoulders, shorter stature), since no open female model with individual muscles exists.
 - **Four roles**: prime mover, synergist, stabilizer and lengthening under load. Each has its own pattern as well as colour, so the roles stay readable for colour-blind viewers.
 - **Three effort tiers** (high, moderate, low) instead of made-up percentages.
+- **English and Serbian** (Latin script). Every exercise, muscle and bone name is translated, and English exercise names still work in the Serbian search.
+- **Three themes**: the original slate, a neutral dark and a light one.
 - **Evidence you can check.** Each exercise says how its muscle data is supported: measured with EMG (62 exercises), from related studies (34), or from anatomy (32). It cites the papers, 71 in total, each checked against PubMed or Crossref. See [docs/02-activation-evidence.md](docs/02-activation-evidence.md).
 
 ## Coming next

@@ -7,7 +7,8 @@ import { patternCss, ROLE_BY_NAME, TIER_LABEL } from '../data/roles';
 import type { Exercise, MuscleId, MuscleInvolvement, MuscleRole, Tier } from '../data/schema';
 import { SOURCE_BY_ID } from '../data/sources';
 import { areasFor } from '../lib/areas';
-import { capitalise, joinList } from '../lib/text';
+import { useT, type Translator } from '../i18n';
+import { capitalise } from '../lib/text';
 import { useViewer } from '../state/viewer';
 import { RoleSwatch } from './Legend';
 import { usePreviewProps } from './preview';
@@ -17,6 +18,7 @@ const ROLE_ORDER: MuscleRole[] = ['prime', 'lengthening', 'synergist', 'stabiliz
 const TIER_BARS: Record<Tier, number> = { high: 3, moderate: 2, low: 1 };
 
 export function TierMeter({ tier }: { tier: Tier }) {
+  const { t } = useT();
   return (
     <span className="flex items-center gap-1.5 text-[12px] text-fog">
       <span aria-hidden className="flex items-end gap-[2px]">
@@ -24,7 +26,7 @@ export function TierMeter({ tier }: { tier: Tier }) {
           <span key={n} className={`w-[3px] rounded-[1px] ${n <= TIER_BARS[tier] ? 'bg-ivory' : 'bg-hairline-strong'}`} style={{ height: 4 + n * 3 }} />
         ))}
       </span>
-      {TIER_LABEL[tier]}
+      {t(TIER_LABEL[tier])}
     </span>
   );
 }
@@ -40,6 +42,7 @@ export function Section({ title, id, divided = true, children }: { title: string
 }
 
 function MuscleRow({ exerciseId, m, focused }: { exerciseId: string; m: MuscleInvolvement; focused: boolean }) {
+  const { t } = useT();
   const preview = usePreviewProps();
   const ref = useRef<HTMLLIElement>(null);
   useEffect(() => {
@@ -55,16 +58,16 @@ function MuscleRow({ exerciseId, m, focused }: { exerciseId: string; m: MuscleIn
           {...preview(m.id)}
           className="text-[14px] font-medium leading-snug underline-offset-2 hover:underline"
         >
-          {MUSCLE_BY_ID[m.id].name}
-          {side && <span className="font-normal text-fog">, {side}</span>}
+          {t(MUSCLE_BY_ID[m.id].name)}
+          {side && <span className="font-normal text-fog">, {t(side)}</span>}
         </Link>
         <TierMeter tier={m.tier} />
       </div>
-      <p className="mt-0.5 text-[13px] leading-snug text-ivory/80">{m.note}</p>
+      <p className="mt-0.5 text-[13px] leading-snug text-ivory/80">{t(m.note)}</p>
       {m.notes && (
         <details className="mt-1 text-[12px] text-fog">
-          <summary className="cursor-pointer hover:text-ivory">Research note</summary>
-          <p className="mt-1 leading-snug">{m.notes}</p>
+          <summary className="cursor-pointer hover:text-ivory">{t('Research note')}</summary>
+          <p className="mt-1 leading-snug">{t(m.notes)}</p>
         </details>
       )}
     </li>
@@ -72,18 +75,29 @@ function MuscleRow({ exerciseId, m, focused }: { exerciseId: string; m: MuscleIn
 }
 
 /** "Mainly works the quads and glutes, with help from the hamstrings. Stretches the hip flexors." */
-function summary(e: Exercise) {
-  const prime = areasFor(e, 'prime');
-  const helpers = areasFor(e, 'synergist').filter((a) => !prime.includes(a));
-  const stretched = areasFor(e, 'lengthening').filter((a) => !prime.includes(a));
-  const works = prime.length ? `Mainly works the ${joinList(prime)}${helpers.length ? `, with help from the ${joinList(helpers)}` : ''}.` : '';
+function summary(e: Exercise, { t, list }: Translator) {
+  const areas = (role: MuscleRole) => areasFor(e, role).map((a) => t(a));
+  const prime = areas('prime');
+  const helpers = areas('synergist').filter((a) => !prime.includes(a));
+  const stretched = areas('lengthening').filter((a) => !prime.includes(a));
+  const works = !prime.length
+    ? ''
+    : helpers.length
+      ? t('Mainly works the {prime}, with help from the {helpers}.', { prime: list(prime), helpers: list(helpers) })
+      : t('Mainly works the {prime}.', { prime: list(prime) });
   const loaded = prime.length > 0 && e.movementPattern !== 'stretch';
-  const stretches = stretched.length ? `Stretches the ${joinList(stretched)}${loaded ? ' under load' : ''}.` : '';
+  const stretches = !stretched.length
+    ? ''
+    : loaded
+      ? t('Stretches the {areas} under load.', { areas: list(stretched) })
+      : t('Stretches the {areas}.', { areas: list(stretched) });
   return [works, stretches].filter(Boolean).join(' ');
 }
 
 /** Everything about one exercise: how it moves, which muscles work and how hard, and how to do it well. */
 export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exercise: Exercise; focus: MuscleId | null; titleHidden?: boolean }) {
+  const tr = useT();
+  const { t, lang, list } = tr;
   const frameExercise = useViewer((s) => s.frameExercise);
   const focusInExercise = focus && e.muscles.some((m) => m.id === focus);
 
@@ -91,66 +105,68 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
     <article aria-labelledby="exercise-title" className="flex flex-col gap-4">
       <header>
         <ul className="mb-2 flex flex-wrap gap-1.5 text-[12px] text-fog">
-          {[...new Set([CATEGORY_LABEL[e.category], DIFFICULTY_LABEL[e.difficulty], ...e.equipment.map((q) => EQUIPMENT_LABEL[q])])].map((t) => (
-            <li key={t} className="rounded-full border border-hairline px-2 py-0.5">
-              {t}
+          {[...new Set([CATEGORY_LABEL[e.category], DIFFICULTY_LABEL[e.difficulty], ...e.equipment.map((q) => EQUIPMENT_LABEL[q])])].map((tag) => (
+            <li key={tag} className="rounded-full border border-hairline px-2 py-0.5">
+              {t(tag)}
             </li>
           ))}
           <li>
             <button
               type="button"
               onClick={() => document.getElementById('evidence')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              aria-label={`Evidence: ${EVIDENCE_LABEL[e.evidence].title}. Jump to sources`}
+              aria-label={t('Evidence: {level}. Jump to sources', { level: t(EVIDENCE_LABEL[e.evidence].title) })}
               className="block rounded-full bg-hairline px-2 py-0.5 text-ivory/85 hover:text-ivory"
             >
-              {EVIDENCE_LABEL[e.evidence].badge}
+              {t(EVIDENCE_LABEL[e.evidence].badge)}
             </button>
           </li>
         </ul>
         <h2 id="exercise-title" className={titleHidden ? 'sr-only' : 'text-[22px] font-semibold leading-tight tracking-[-0.01em]'}>
-          {e.name}
+          {t(e.name)}
         </h2>
-        {e.aliases.length > 0 && <p className="mt-1 text-[13px] text-fog">Also called {joinList(e.aliases)}.</p>}
-        <p className="mt-3 text-[15px] leading-snug text-ivory/90">{summary(e)}</p>
+        {/* In another language the English name comes first: many gyms use it. Aliases are English gym terms. */}
+        {lang !== 'en' && <p className="mt-1 text-[13px] text-fog">{t('In English: {name}.', { name: e.name })}</p>}
+        {e.aliases.length > 0 && <p className="mt-1 text-[13px] text-fog">{t('Also called {names}.', { names: list(e.aliases) })}</p>}
+        <p className="mt-3 text-[15px] leading-snug text-ivory/90">{summary(e, tr)}</p>
         <button type="button" onClick={() => frameExercise(e)} className="btn-secondary mt-3">
-          Frame working muscles
+          {t('Frame working muscles')}
         </button>
       </header>
 
       {focus && !focusInExercise && (
         <p className="rounded-control bg-hairline px-3 py-2 text-[13px]">
-          {MUSCLE_BY_ID[focus].name} isn’t used much in this exercise.{' '}
+          {t('{muscle} isn’t used much in this exercise.', { muscle: t(MUSCLE_BY_ID[focus].name) })}{' '}
           <Link to={`/muscle/${focus}`} className="link">
-            Open the muscle page
+            {t('Open the muscle page')}
           </Link>
         </p>
       )}
 
-      <Section title="How it moves">
+      <Section title={t('How it moves')}>
         <ol className="flex flex-col gap-2">
           {e.phases.map((p) => (
             <li key={p.label} className="text-[14px] leading-snug">
-              <span className="font-medium">{p.label}</span> <span className="text-[12px] text-fog">{PHASE_KIND_LABEL[p.kind]}</span>
-              <span className="block text-ivory/80">{capitalise(joinList(p.jointActions.map(jointActionText)))}.</span>
+              <span className="font-medium">{t(p.label)}</span> <span className="text-[12px] text-fog">{t(PHASE_KIND_LABEL[p.kind])}</span>
+              <span className="block text-ivory/80">{capitalise(list(p.jointActions.map((a) => jointActionText(a, lang))))}.</span>
             </li>
           ))}
         </ol>
       </Section>
 
-      <Section title="Muscles">
+      <Section title={t('Muscles')}>
         <div className="flex flex-col gap-3">
           {ROLE_ORDER.map((role) => {
-            const list = e.muscles.filter((m) => m.role === role);
-            if (list.length === 0) return null;
+            const ofRole = e.muscles.filter((m) => m.role === role);
+            if (ofRole.length === 0) return null;
             const style = ROLE_BY_NAME[role];
             return (
               <div key={role}>
                 <h4 className="mb-1 flex items-center gap-2 text-[13px] text-fog">
                   <RoleSwatch background={patternCss(style)} />
-                  {style.label}
+                  {t(style.label)}
                 </h4>
                 <ul className="-mx-2">
-                  {list.map((m) => (
+                  {ofRole.map((m) => (
                     <MuscleRow key={`${m.id}/${m.side ?? 'both'}`} exerciseId={e.id} m={m} focused={focus === m.id} />
                   ))}
                 </ul>
@@ -160,51 +176,51 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
         </div>
       </Section>
 
-      <Section title="Cues">
+      <Section title={t('Cues')}>
         <ul className="list-disc space-y-1 pl-5 text-[14px] leading-snug text-ivory/90">
           {e.cues.map((c) => (
-            <li key={c}>{c}</li>
+            <li key={c}>{t(c)}</li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Common mistakes">
+      <Section title={t('Common mistakes')}>
         <dl className="space-y-2 text-[14px] leading-snug">
           {e.mistakes.map((x) => (
             <div key={x.mistake}>
-              <dt className="font-medium">{x.mistake}</dt>
-              <dd className="text-ivory/80">{x.fix}</dd>
+              <dt className="font-medium">{t(x.mistake)}</dt>
+              <dd className="text-ivory/80">{t(x.fix)}</dd>
             </div>
           ))}
         </dl>
       </Section>
 
-      <Section title="Variations">
+      <Section title={t('Variations')}>
         <ul className="space-y-2 text-[14px] leading-snug">
           {e.variations.map((v) => (
             <li key={v.name}>
               {v.exerciseId ? (
                 <Link to={exercisePath(v.exerciseId)} className="link font-medium">
-                  {v.name}
+                  {t(v.name)}
                 </Link>
               ) : (
-                <span className="font-medium">{v.name}</span>
+                <span className="font-medium">{t(v.name)}</span>
               )}
-              <span className="block text-ivory/80">{v.emphasisShift}</span>
+              <span className="block text-ivory/80">{t(v.emphasisShift)}</span>
             </li>
           ))}
         </ul>
       </Section>
 
       {e.notes && (
-        <Section title="Notes">
-          <p className="text-[14px] leading-snug text-ivory/80">{e.notes}</p>
+        <Section title={t('Notes')}>
+          <p className="text-[14px] leading-snug text-ivory/80">{t(e.notes)}</p>
         </Section>
       )}
 
-      <Section title="Evidence and sources" id="evidence">
+      <Section title={t('Evidence and sources')} id="evidence">
         <p className="mb-2 text-[13px] leading-snug text-ivory/80">
-          <span className="font-semibold text-ivory">{EVIDENCE_LABEL[e.evidence].title}.</span> {EVIDENCE_LABEL[e.evidence].detail}
+          <span className="font-semibold text-ivory">{t(EVIDENCE_LABEL[e.evidence].title)}.</span> {t(EVIDENCE_LABEL[e.evidence].detail)}
         </p>
         <ol className="list-decimal space-y-1.5 pl-5 text-[12px] leading-snug text-fog">
           {e.sourceIds.map((sid) => {
@@ -215,7 +231,7 @@ export function ExercisePanel({ exercise: e, focus, titleHidden = false }: { exe
                 {s.citation}{' '}
                 {href && (
                   <a href={href} target="_blank" rel="noreferrer" className="link">
-                    {s.doi ? `doi:${s.doi}` : 'link'}
+                    {s.doi ? `doi:${s.doi}` : t('link')}
                   </a>
                 )}
               </li>

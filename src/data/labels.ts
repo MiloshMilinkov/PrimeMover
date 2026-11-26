@@ -1,4 +1,5 @@
-import type { Category, Difficulty, Equipment, Evidence, JointAction, JointId, MuscleGroup, PhaseKind, Side } from './schema';
+import type { Lang } from '../state/settings';
+import type { Category, Difficulty, Equipment, Evidence, JointAction, JointId, JointMotion, MuscleGroup, PhaseKind, Side } from './schema';
 
 export const JOINT_LABEL: Record<JointId, string> = {
   'cervical-spine': 'neck',
@@ -19,8 +20,69 @@ export const JOINT_LABEL: Record<JointId, string> = {
 
 export const SIDE_LABEL: Record<Side, string> = { both: '', working: 'working side', 'non-working': 'other side' };
 
+/** Serbian joint names: nominative, genitive, and whether the noun is plural (for "miruje/miruju"). */
+const JOINT_SR: Record<JointId, [string, string, boolean?]> = {
+  'cervical-spine': ['vrat', 'vrata'],
+  'thoracic-spine': ['gornji deo leđa', 'gornjeg dela leđa'],
+  'lumbar-spine': ['donji deo leđa', 'donjeg dela leđa'],
+  scapulothoracic: ['lopatice', 'lopatica', true],
+  shoulder: ['rame', 'ramena'],
+  elbow: ['lakat', 'lakta'],
+  radioulnar: ['podlaktica', 'podlaktice'],
+  wrist: ['ručni zglob', 'ručnog zgloba'],
+  fingers: ['prsti', 'prstiju', true],
+  hip: ['kuk', 'kuka'],
+  knee: ['koleno', 'kolena'],
+  ankle: ['skočni zglob', 'skočnog zgloba'],
+  subtalar: ['subtalarni zglob', 'subtalarnog zgloba'],
+  toes: ['prsti stopala', 'prstiju stopala', true],
+};
+
+const MOTION_SR: Record<Exclude<JointMotion, 'isometric-hold'>, string> = {
+  flexion: 'fleksija',
+  extension: 'ekstenzija',
+  hyperextension: 'hiperekstenzija',
+  abduction: 'abdukcija',
+  adduction: 'adukcija',
+  'horizontal-abduction': 'horizontalna abdukcija',
+  'horizontal-adduction': 'horizontalna adukcija',
+  'internal-rotation': 'unutrašnja rotacija',
+  'external-rotation': 'spoljašnja rotacija',
+  'lateral-flexion': 'bočna fleksija',
+  rotation: 'rotacija',
+  elevation: 'elevacija',
+  depression: 'depresija',
+  protraction: 'protrakcija',
+  retraction: 'retrakcija',
+  'upward-rotation': 'rotacija nagore',
+  'downward-rotation': 'rotacija nadole',
+  pronation: 'pronacija',
+  supination: 'supinacija',
+  dorsiflexion: 'dorzalna fleksija',
+  plantarflexion: 'plantarna fleksija',
+  inversion: 'inverzija',
+  eversion: 'everzija',
+  'anterior-pelvic-tilt': 'prednji nagib karlice',
+  'posterior-pelvic-tilt': 'zadnji nagib karlice',
+};
+const SIDE_SR: Record<Side, string> = { both: '', working: 'radna strana', 'non-working': 'druga strana' };
+
+/** "fleksija kuka", "donji deo leđa miruje", "zadnji nagib karlice (radna strana)". */
+function jointActionTextSr(a: JointAction) {
+  const [nominative, genitive, plural] = JOINT_SR[a.joint];
+  const text =
+    a.motion === 'isometric-hold'
+      ? `${nominative} ${plural ? 'miruju' : 'miruje'}`
+      : a.motion.endsWith('pelvic-tilt')
+        ? MOTION_SR[a.motion]
+        : `${MOTION_SR[a.motion]} ${genitive}`;
+  const side = SIDE_SR[a.side ?? 'both'];
+  return side ? `${text} (${side})` : text;
+}
+
 /** "hip flexion", "lower back held still", "posterior pelvic tilt (working side)". */
-export function jointActionText(a: JointAction) {
+export function jointActionText(a: JointAction, lang: Lang = 'en') {
+  if (lang === 'sr') return jointActionTextSr(a);
   const motion = a.motion.replaceAll('-', ' ');
   const text =
     a.motion === 'isometric-hold'

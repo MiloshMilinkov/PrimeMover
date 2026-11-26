@@ -30,6 +30,14 @@
       rel="stylesheet"
     />
     <title>Prime Mover</title>
+    <script>
+      // Apply the saved theme and language before first paint (src/state/settings.ts keeps them in sync after).
+      try {
+        var s = JSON.parse(localStorage.getItem('pm.settings') || '{}').state || {};
+        document.documentElement.dataset.theme = s.theme || 'original';
+        if (s.lang === 'sr') document.documentElement.lang = 'sr-Latn';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

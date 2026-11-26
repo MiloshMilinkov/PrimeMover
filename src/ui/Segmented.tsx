@@ -1,11 +1,12 @@
 import { useId, type KeyboardEvent } from 'react';
+import { useT } from '../i18n';
 
 interface Option<T extends string | number> {
   value: T;
   label: string;
 }
 
-/** Radio-group style segmented control with arrow-key navigation. */
+/** Radio-group style segmented control with arrow-key navigation. Option labels go through t(), so pass English (msg()) labels. */
 export function Segmented<T extends string | number>({
   label,
   options,
@@ -19,6 +20,7 @@ export function Segmented<T extends string | number>({
   onChange: (v: T) => void;
   className?: string;
 }) {
+  const { t } = useT();
   const id = useId();
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = options.findIndex((o) => o.value === value);
@@ -49,7 +51,7 @@ export function Segmented<T extends string | number>({
               active ? 'bg-ivory text-vitrine' : 'text-fog hover:bg-hairline hover:text-ivory'
             }`}
           >
-            {o.label}
+            {t(o.label)}
           </button>
         );
       })}

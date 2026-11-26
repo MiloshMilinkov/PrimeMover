@@ -3,13 +3,17 @@ import { EXERCISE_BY_ID } from '../data/exercises';
 import { MUSCLE_BY_ID } from '../data/muscles';
 import { ROLE_BY_NAME, TIER_LABEL } from '../data/roles';
 import { involvementFor, involvementKey } from '../lib/involvement';
+import { useT } from '../i18n';
 import { capitalise } from '../lib/text';
 import { useViewer, type ModelSide } from '../state/viewer';
+import { useMediaQuery } from './layout';
 
-const sideLabel = (side: ModelSide) => (side === 'center' ? '' : side);
 
 /** Follows the pointer over the model: muscle name and side, or the bone name. */
 export function HoverTooltip() {
+  const { t } = useT();
+  // On touch screens a tap opens the muscle straight away, so a hover label only gets in the way.
+  const canHover = useMediaQuery('(hover: hover)');
   const hover = useViewer((s) => s.hover);
   const meta = useViewer((s) => s.meta);
   const exerciseId = useViewer((s) => s.exercise);
@@ -29,26 +33,27 @@ export function HoverTooltip() {
     return () => window.removeEventListener('pointermove', onMove);
   }, []);
 
+  const sideText = (side?: ModelSide) => (side === 'left' ? t('left') : side === 'right' ? t('right') : '');
   let title = '';
   let detail = '';
   if (hover && meta) {
     if (hover.kind === 'muscle') {
       const slot = meta.slots[hover.slot];
-      title = slot?.id ? MUSCLE_BY_ID[slot.id].name : (slot?.name ?? '');
+      title = t(slot?.id ? MUSCLE_BY_ID[slot.id].name : (slot?.name ?? ''));
       // In an exercise, say what this muscle does there (side-aware for one-sided lifts).
       const involved = exercise && slot?.id ? involvementFor(exercise).get(involvementKey(slot.id, slot.side)) : undefined;
       const usage = exercise
         ? involved
-          ? `${ROLE_BY_NAME[involved.role].label.toLowerCase()}, ${TIER_LABEL[involved.tier].toLowerCase()}`
-          : 'not used here'
+          ? `${t(ROLE_BY_NAME[involved.role].label).toLowerCase()}, ${t(TIER_LABEL[involved.tier]).toLowerCase()}`
+          : t('not used here')
         : slot?.id
-          ? 'click for details'
+          ? t('click for details')
           : '';
-      detail = [sideLabel(slot?.side ?? 'center'), usage].filter(Boolean).join(', ');
+      detail = [sideText(slot?.side), usage].filter(Boolean).join(', ');
     } else {
       const part = meta.parts[hover.part];
-      title = part?.name ?? '';
-      detail = [sideLabel(part?.side ?? 'center'), 'bone'].filter(Boolean).join(' ');
+      title = t(part?.name ?? '');
+      detail = part?.side === 'left' ? t('left bone') : part?.side === 'right' ? t('right bone') : t('bone');
     }
   }
 
@@ -57,7 +62,7 @@ export function HoverTooltip() {
       ref={ref}
       role="status"
       aria-live="polite"
-      hidden={!title}
+      hidden={!title || !canHover}
       className="glass pointer-events-none fixed left-0 top-0 z-30 max-w-[240px] rounded-xl px-3 py-2"
     >
       <div className="text-[14px] font-medium leading-tight">{capitalise(title)}</div>

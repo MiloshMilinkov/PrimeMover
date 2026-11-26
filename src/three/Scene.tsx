@@ -1,7 +1,8 @@
 import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
-import { memo, Suspense } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { memo, Suspense, useEffect } from 'react';
 import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
+import { useSettings } from '../state/settings';
 import { useViewer } from '../state/viewer';
 import { Body } from './Body';
 import { BASE_FOV, PRESETS } from './camera';
@@ -19,6 +20,35 @@ const STUDIO = (
     <Lightformer form="ring" intensity={0.5} color="#ffffff" position={[0, 0.5, 5]} scale={4} />
   </Environment>
 );
+
+/**
+ * The browser can drop the canvas's last frame when the page is restyled (theme,
+ * language) or hidden (the phone switched apps, the tab went to the background). With
+ * on-demand rendering nothing would draw the body again, so ask for a frame.
+ */
+function Redraw() {
+  const invalidate = useThree((s) => s.invalidate);
+  const theme = useSettings((s) => s.theme);
+  const lang = useSettings((s) => s.lang);
+  useEffect(() => {
+    // Twice: once now, once after the browser has applied the new styles.
+    invalidate();
+    const id = requestAnimationFrame(() => invalidate());
+    return () => cancelAnimationFrame(id);
+  }, [theme, lang, invalidate]);
+  useEffect(() => {
+    const onShow = () => {
+      if (document.visibilityState === 'visible') invalidate();
+    };
+    document.addEventListener('visibilitychange', onShow);
+    window.addEventListener('pageshow', onShow);
+    return () => {
+      document.removeEventListener('visibilitychange', onShow);
+      window.removeEventListener('pageshow', onShow);
+    };
+  }, [invalidate]);
+  return null;
+}
 
 /** Renders on demand: camera moves, hover and state changes call invalidate(). */
 export const Scene = memo(function Scene() {
@@ -46,6 +76,7 @@ export const Scene = memo(function Scene() {
         <ContactShadows position={[0, 0.001, 0]} scale={2.6} blur={2.6} far={1.4} opacity={0.6} resolution={512} frames={1} color="#000000" />
       </Suspense>
       <CameraRig />
+      <Redraw />
     </Canvas>
   );
 });
