@@ -84,3 +84,7 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 - BodyParts3D OBJ headers still carry the old CC BY-SA 2.1 JP text. The licence page (2025-02-27) says CC BY 4.0.
 - Muscle parts such as the trapezius parts sit only under the generic "organ zone" concept, so the mesh map trusts its explicit name list.
 - Vitest still runs the body of a `describe.skipIf(...)` block to collect its tests, so guard any file reads inside it (see `tests/crosscheck.test.ts`).
+
+## CI
+
+`.github/workflows/ci.yml` calls the shared `node-ci.yml` in `MiloshMilinkov/.github`: it runs the `typecheck`, `lint`, `test` and `build` scripts that exist, plus a gitleaks scan. Check runs with `gh run list -L 3`. The deploy job stays off until the repo has the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets and `DEPLOY_FROM_CI=true`; until then deploy with `npm run deploy`.

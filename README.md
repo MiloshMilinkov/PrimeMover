@@ -2,6 +2,8 @@
 
 # Prime Mover
 
+[![CI](https://github.com/MiloshMilinkov/PrimeMover/actions/workflows/ci.yml/badge.svg)](https://github.com/MiloshMilinkov/PrimeMover/actions/workflows/ci.yml)
+
 > **⚠️ View only — not open source.**
 > This code is public for viewing only. Copying, modifying, deploying, redistributing or reusing any part of it (code, design, texts or branding), or using it to train AI models, is not allowed without written permission. See [LICENSE](LICENSE).
 
