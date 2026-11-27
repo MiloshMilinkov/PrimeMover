@@ -4,24 +4,16 @@ Formerly HowWeMove (renamed 2026-11-25; the local folder and the model files' in
 
 Proprietary, all rights reserved (see `LICENSE`). Not open source.
 
-## Status
-
-- Step 1 (research, architecture, schema) is done: `docs/01-research-and-plan.md`. The user chose asset option A (BodyParts3D, CC BY 4.0).
-- Step 2 (viewer) is built: model, camera presets, studio light, layer and depth toggles, hover and click picking, muscle details, deep links `/muscle/:id`, mobile bottom sheet.
-- Step 3 is built: role highlighting, info panel, search and filters. The library has 128 exercises (62 measured with EMG, 34 from related studies, 32 from anatomy); method and dataset licences in `docs/02-activation-evidence.md`.
-- Step 4 (movement animation) was dropped by the user on 2026-11-25: the static model shows the muscles worked well enough. The model has no rig; do not add one unless asked.
-- Male and female bodies (2026-11-25): the female body is the BodyParts3D male body warped to typical female proportions (no open female model with individual muscles exists). The app and README say "proportions adjusted"; keep that wording honest.
-- Themes, Serbian and mobile rework (2026-11-26): original, light and dark themes; English and Serbian (Latinica, user's choice), with every exercise and muscle name translated and English names still searchable; a reworked phone layout.
-- Next is step 5.
-
 ## Build order (stop and show the user after each step)
 
-1. Asset research, architecture plan, data schema
-2. Viewer: model loaded, camera, lighting, layer toggles, hover and click muscles
-3. 30 well-researched exercises with highlighting, the info panel, and search and filters
-4. ~~Movement animation~~ (dropped; see Status)
-5. 150+ exercises, then reverse lookup, compare mode, and the workout builder
-6. Polish: post-processing, transitions, mobile layout, performance (code-split three.js), accessibility
+1. Asset research, architecture plan, data schema: done in `docs/01-research-and-plan.md`. The user chose asset option A (BodyParts3D, CC BY 4.0).
+2. Viewer: done. Model, camera presets, studio light, layer and depth toggles, hover and click picking, muscle details, deep links `/muscle/:id`, mobile bottom sheet.
+3. Exercises with role highlighting, the info panel, search and filters: done. 128 exercises (62 measured with EMG, 34 from related studies, 32 from anatomy); method and dataset licences in `docs/02-activation-evidence.md`.
+4. ~~Movement animation~~: dropped by the user on 2026-11-25, because the static model shows the muscles worked well enough. The model has no rig; do not add one unless asked.
+5. Next: 150+ exercises, then reverse lookup, compare mode, and the workout builder.
+6. Polish: post-processing, transitions, mobile layout, performance (code-split three.js), accessibility.
+
+Also built: male and female bodies (2026-11-25; the female body is the BodyParts3D male body warped to typical female proportions, since no open female model with individual muscles exists; the app and README say "proportions adjusted", keep that wording honest), and on 2026-11-26 original, light and dark themes, English and Serbian (Latinica, the user's choice; every exercise and muscle name translated, English names still searchable) and a reworked phone layout.
 
 Check every step in the browser: no console errors, no horizontal scroll, works at 375px.
 
@@ -37,6 +29,7 @@ Check every step in the browser: no console errors, no horizontal scroll, works 
 - `npm run deploy`: `npm run build`, then `wrangler deploy` (Cloudflare Workers static assets from `dist/`, SPA fallback, headers in `public/_headers`). Live at https://prime-mover.milos300399.workers.dev. The old howwemove.milos300399.workers.dev address is a separate redirect Worker in `ops/old-url-redirect/` (`npm run deploy:redirect`). Wrangler is logged in on this machine.
 - Repo: https://github.com/MiloshMilinkov/PrimeMover (public, view-only licence; vulnerability reporting, secret scanning with push protection, Dependabot alerts and a "Protect main" ruleset are on)
 - `npm run model:build`: rebuilds `public/models/body-{high,low}.glb` (male) and `body-female-{high,low}.glb` (about 12 s)
+- CI: `.github/workflows/ci.yml` calls the shared `node-ci.yml` in `MiloshMilinkov/.github` (the `typecheck`, `lint`, `test` and `build` scripts that exist, plus a gitleaks scan); check runs with `gh run list -L 3`. Its deploy job stays off until the repo has the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets and `DEPLOY_FROM_CI=true`; until then deploy with `npm run deploy`.
 
 The model scripts need the BodyParts3D source data in `pipeline/.source/bp3d/` (git-ignored). Download it from https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html: `isa_BP3D_4.0_obj_99.zip`, unzipped into `isa_obj/`, plus `isa_element_parts.txt` and `isa_parts_list_e.txt`. The built GLBs are committed, so the app runs without it.
 
@@ -84,7 +77,3 @@ Vite 8, React 19, TypeScript (strict), three r187 via React Three Fiber 9 and dr
 - BodyParts3D OBJ headers still carry the old CC BY-SA 2.1 JP text. The licence page (2025-02-27) says CC BY 4.0.
 - Muscle parts such as the trapezius parts sit only under the generic "organ zone" concept, so the mesh map trusts its explicit name list.
 - Vitest still runs the body of a `describe.skipIf(...)` block to collect its tests, so guard any file reads inside it (see `tests/crosscheck.test.ts`).
-
-## CI
-
-`.github/workflows/ci.yml` calls the shared `node-ci.yml` in `MiloshMilinkov/.github`: it runs the `typecheck`, `lint`, `test` and `build` scripts that exist, plus a gitleaks scan. Check runs with `gh run list -L 3`. The deploy job stays off until the repo has the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets and `DEPLOY_FROM_CI=true`; until then deploy with `npm run deploy`.

@@ -61,6 +61,14 @@ Educational only, not medical advice.
 
 3D anatomy geometry adapted from **BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International** (https://creativecommons.org/licenses/by/4.0/). Changes: selection of muscles and bones, unit and axis conversion, smoothing, decimation, generated muscles, and a landmark warp to typical female proportions for the female body.
 
+## How it was built
+
+Built with [Claude Code](https://claude.com/claude-code), one reviewed step at a time. The build order and project rules are in
+[CLAUDE.md](CLAUDE.md), the research and plan in
+[docs/01-research-and-plan.md](docs/01-research-and-plan.md), how each exercise's muscle data is
+decided in [docs/02-activation-evidence.md](docs/02-activation-evidence.md), and the general
+workflow in [claude-workflow](https://github.com/MiloshMilinkov/claude-workflow).
+
 ## License
 
 Copyright © 2026 Miloš Milinkov. All rights reserved.
